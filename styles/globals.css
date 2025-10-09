@@ -1,6 +1,20 @@
 :root {
-  --background-color: #1C2E4A;
-  --foreground: #D1CFC9;
+  /* Purple gradient theme */
+  --bg: linear-gradient(180deg, #4B0082 0%, #7C3AEA 50%, #B388FF 100%);
+  --fg: #F6F5FF;
+  --muted: rgba(246,245,255,0.9);
+  --accent: linear-gradient(90deg,#7C3AEA,#A67BFF);
+  --background-color: #2b0f3a; /* fallback solid color */
+  --foreground: #F6F5FF;
+  /* Auto-contrast targets */
+  --fg-high: #FFFFFF;
+  --fg-low: #0b0b0d;
+  --muted-high: rgba(255,255,255,0.92);
+  --muted-low: rgba(0,0,0,0.65);
+  /* Transitions */
+  --transition-fast: 180ms;
+  --transition-medium: 350ms;
+  --transition-ease: cubic-bezier(.2,.9,.2,1);
 }
 
 html,
@@ -11,11 +25,115 @@ body {
 
 body {
   color: var(--foreground);
+  /* Use the gradient where supported, fallback to solid color */
   background: var(--background-color);
+  background-image: var(--bg);
   font-family: Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* When high contrast is active, swap helpful variables */
+:root[data-contrast="high"] {
+  --fg: var(--fg-high);
+  --muted: var(--muted-high);
+  --foreground: var(--fg-high);
+}
+
+:root[data-contrast="low"] {
+  --fg: var(--fg-low);
+  --muted: var(--muted-low);
+  --foreground: var(--fg-low);
+}
+
+/* Theme modes */
+:root[data-theme="dark"] {
+  --bg: linear-gradient(180deg, #2b0f3a 0%, #5a2b8f 60%, #7C3AEA 100%);
+  --background-color: #1b0725;
+  --fg: #F6F5FF;
+  --muted: rgba(246,245,255,0.9);
+  --accent: linear-gradient(90deg,#7C3AEA,#A67BFF);
+}
+
+:root[data-theme="light"] {
+  --bg: linear-gradient(180deg,#fbfbfe 0%, #f0e8ff 50%, #efe7ff 100%);
+  --background-color: #fbfbfe;
+  --fg: #0b0b12;
+  --muted: rgba(11,11,18,0.65);
+  --accent: linear-gradient(90deg,#6b46c1,#9f7aea);
+}
+
+/* Smooth transitions for theme-sensitive properties */
+* { transition: color var(--transition-fast) var(--transition-ease), background-color var(--transition-medium) var(--transition-ease), box-shadow var(--transition-medium) var(--transition-ease), border-color var(--transition-fast) var(--transition-ease); }
+body, .page { transition: background-image var(--transition-medium) var(--transition-ease), background-color var(--transition-medium) var(--transition-ease), color var(--transition-fast) var(--transition-ease); }
+
+/* Subtle starfield overlay (two layers for slight twinkle) */
+body::before,
+body::after{
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.9;
+}
+
+body::before{
+  box-shadow:
+    4vw 6vh rgba(215,170,255,0.98),
+    9vw 14vh rgba(195,150,255,0.9),
+    15vw 22vh rgba(180,135,255,0.85),
+    22vw 6vh rgba(220,180,255,0.95),
+    30vw 36vh rgba(170,120,245,0.7),
+    36vw 20vh rgba(190,140,250,0.85),
+    44vw 58vh rgba(150,100,235,0.6),
+    50vw 12vh rgba(210,165,255,0.9),
+    58vw 32vh rgba(180,130,245,0.75),
+    66vw 46vh rgba(165,115,235,0.7),
+    74vw 18vh rgba(205,160,255,0.92),
+    82vw 62vh rgba(140,85,220,0.55),
+    12vw 72vh rgba(155,110,230,0.6),
+    28vw 84vh rgba(165,115,235,0.55),
+    88vw 28vh rgba(150,95,220,0.6),
+    96vw 8vh rgba(135,80,210,0.5);
+  animation: twinkleSlow 8s linear infinite;
+}
+
+body::after{
+  box-shadow:
+    6vw 4vh rgba(200,155,255,0.95),
+    14vw 28vh rgba(185,140,255,0.75),
+    22vw 12vh rgba(200,150,255,0.88),
+    30vw 48vh rgba(165,115,245,0.65),
+    38vw 8vh rgba(190,140,250,0.82),
+    46vw 28vh rgba(175,125,245,0.75),
+    54vw 68vh rgba(150,100,230,0.6),
+    62vw 42vh rgba(205,160,255,0.9),
+    70vw 24vh rgba(165,115,235,0.65),
+    78vw 70vh rgba(145,95,220,0.55),
+    86vw 10vh rgba(195,145,250,0.88),
+    46vw 84vh rgba(140,90,215,0.48),
+    18vw 88vh rgba(150,100,225,0.5);
+  animation: twinkle 10s linear infinite;
+}
+
+@keyframes twinkle {
+  0%,100%{opacity:0.95}
+  50%{opacity:0.6}
+}
+
+@keyframes twinkleSlow {
+  0%,100%{opacity:0.9}
+  50%{opacity:0.7}
+}
+
+/* subtle purple nebula tints to create a galaxy feel */
+body::before{background-image: radial-gradient(closest-side at 20% 30%, rgba(124,58,237,0.18), transparent 30%), radial-gradient(closest-side at 80% 70%, rgba(166,123,255,0.14), transparent 28%);} 
+body::after{background-image: radial-gradient(closest-side at 60% 20%, rgba(180,130,255,0.08), transparent 25%), radial-gradient(closest-side at 30% 80%, rgba(120,40,160,0.08), transparent 22%);} 
 
 * {
   box-sizing: border-box;
