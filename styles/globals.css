@@ -3,7 +3,7 @@
   --bg: linear-gradient(180deg, #071028 0%, #0f2b48 50%, #173662 100%);
   --fg: #E8F6FF; /* light text on dark backgrounds */
   --muted: rgba(232,246,255,0.88);
-  --accent: linear-gradient(90deg,#1E90FF,#3B82F6); /* azure -> royal blue */
+  --accent: linear-gradient(90deg,#0B66FF,#1E90FF); /* stronger azure -> royal blue */
   --background-color: #071028; /* fallback solid deep blue */
   --foreground: #E8F6FF;
   /* Auto-contrast targets */
@@ -52,7 +52,7 @@ body {
   --background-color: #05101b;
   --fg: #E8F6FF;
   --muted: rgba(232,246,255,0.88);
-  --accent: linear-gradient(90deg,#1E90FF,#3B82F6);
+  --accent: linear-gradient(90deg,#66B8FF,#7CC2FF);
 }
 
 :root[data-theme="light"] {
@@ -60,8 +60,28 @@ body {
   --bg: linear-gradient(180deg,#f7fbff 0%, #eaf6ff 50%, #e2eff9 100%);
   --background-color: #f7fbff;
   --fg: #071028;
-  --muted: rgba(7,16,40,0.68);
-  --accent: linear-gradient(90deg,#1E90FF,#3B82F6);
+  --muted: rgba(7,16,40,0.78);
+  /* stronger, higher-contrast accent for light theme */
+  --accent: linear-gradient(90deg,#0B66FF,#1749E6);
+}
+
+/* High-contrast overrides when user requests stronger contrast. */
+/* Light-theme + high contrast: make all text darker and accents bolder */
+:root[data-theme="light"][data-contrast="high"] {
+  --fg: #000000;
+  --foreground: #000000;
+  --muted: rgba(0,0,0,0.88);
+  --muted-high: rgba(0,0,0,0.95);
+  --accent: linear-gradient(90deg,#003EE6,#0B66FF);
+}
+
+/* Dark-theme + high contrast: ensure text is pure white and accents pop */
+:root[data-theme="dark"][data-contrast="high"] {
+  --fg: #FFFFFF;
+  --foreground: #FFFFFF;
+  --muted: rgba(255,255,255,0.96);
+  --muted-high: rgba(255,255,255,0.99);
+  --accent: linear-gradient(90deg,#66C8FF,#9EE6FF);
 }
 
 /* Smooth transitions for theme-sensitive properties */

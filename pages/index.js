@@ -107,6 +107,38 @@ export default function Home() {
     );
   }
 
+  // High contrast toggle component (visible button)
+  function HighContrastToggle() {
+    const [high, setHigh] = useState(false);
+
+    useEffect(() => {
+      if (typeof window === 'undefined' || typeof document === 'undefined') return;
+      const saved = localStorage.getItem('contrast');
+      const isHigh = saved === 'high' || document.documentElement.getAttribute('data-contrast') === 'high';
+      setHigh(isHigh);
+      if (isHigh) document.documentElement.setAttribute('data-contrast', 'high');
+    }, []);
+
+    const toggle = () => {
+      const next = !high;
+      setHigh(next);
+      if (typeof document !== 'undefined') document.documentElement.setAttribute('data-contrast', next ? 'high' : 'low');
+      try { if (typeof window !== 'undefined') localStorage.setItem('contrast', next ? 'high' : 'low'); } catch (e) { }
+    };
+
+    return (
+      <button
+        type="button"
+        className={styles.contrastBtn}
+        aria-pressed={high}
+        aria-label="Alternar alto contraste"
+        onClick={toggle}
+      >
+        {high ? 'Alto Contraste: ON' : 'Alto Contraste: OFF'}
+      </button>
+    );
+  }
+
   // Auto-contrast: compute simple luminance from background and toggle data-contrast
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -202,11 +234,12 @@ export default function Home() {
 
             <div className={styles.headerActions}>
               <ThemeToggle />
+              <HighContrastToggle />
             </div>
           </div>
         </header>
 
-  <main id="main" role="main" className={styles.siteMain}>
+        <main id="main" role="main" className={styles.siteMain}>
           <section id="hero" className={styles.section}>
             <div className={styles.heroInner}>
               <div className={styles.avatarWrap}>
