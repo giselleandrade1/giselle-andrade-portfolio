@@ -97,11 +97,11 @@ export default function Home() {
     };
 
     return (
-      <label className={styles.switch}>
-        <input type="checkbox" id="toggle-dark-mode" checked={checked} onChange={handleChange} />
+      <label className={styles.switch} htmlFor="toggle-dark-mode">
+        <input aria-label="Alternar tema claro/escuro" aria-pressed={checked} type="checkbox" id="toggle-dark-mode" checked={checked} onChange={handleChange} />
         <span className={styles.slider} aria-hidden>
-          <img src="/moon-stars.svg" alt="Modo escuro" className={styles.iconDark} />
-          <img src="/sun.svg" alt="Modo claro" className={styles.iconLight} />
+          <img src="/moon-stars.svg" alt="" aria-hidden className={styles.iconDark} />
+          <img src="/sun.svg" alt="" aria-hidden className={styles.iconLight} />
         </span>
       </label>
     );
@@ -184,6 +184,7 @@ export default function Home() {
       </Head>
 
       <div className={styles.page}>
+        <a href="#main" className={styles.skipLink}>Pular para o conteúdo</a>
         <header className={styles.header}>
           <div className={styles.headerInner}>
             <a href="https://github.com/giselleandrade1" target="_blank" rel="noopener noreferrer" aria-label="Giselle Andrade GitHub profile">
@@ -199,13 +200,13 @@ export default function Home() {
               <a href="#contact">Contato</a>
             </nav>
 
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div className={styles.headerActions}>
               <ThemeToggle />
             </div>
           </div>
         </header>
 
-        <main className={styles.siteMain}>
+  <main id="main" role="main" className={styles.siteMain}>
           <section id="hero" className={styles.section}>
             <div className={styles.heroInner}>
               <div className={styles.avatarWrap}>
@@ -247,55 +248,55 @@ export default function Home() {
                 <article className={styles.card}>
                   <h3>Projeto A</h3>
                   <p className={styles.sectionBody}>App responsivo com foco em performance e animações suaves.</p>
-                  <div className={styles.cardFooter}><a href="#">Ver projeto</a></div>
+                  <div className={styles.cardFooter}><a href="#" aria-label="Ver projeto — Projeto A">Ver projeto</a></div>
                 </article>
 
                 <article className={styles.card}>
                   <h3>Projeto B</h3>
                   <p className={styles.sectionBody}>Design system e componentes reutilizáveis.</p>
-                  <div className={styles.cardFooter}><a href="#">Ver projeto</a></div>
+                  <div className={styles.cardFooter}><a href="#" aria-label="Ver projeto — Projeto B">Ver projeto</a></div>
                 </article>
 
                 <article className={styles.card}>
                   <h3>Projeto C</h3>
                   <p className={styles.sectionBody}>Ferramenta open-source com testes e CI.</p>
-                  <div className={styles.cardFooter}><a href="#">Ver projeto</a></div>
+                  <div className={styles.cardFooter}><a href="#" aria-label="Ver projeto — Projeto C">Ver projeto</a></div>
                 </article>
 
                 <article className={styles.card}>
                   <h3>Projeto D</h3>
                   <p className={styles.sectionBody}>Aplicativo de produtividade com sincronização em tempo real.</p>
-                  <div className={styles.cardFooter}><a href="#">Ver projeto</a></div>
+                  <div className={styles.cardFooter}><a href="#" aria-label="Ver projeto — Projeto D">Ver projeto</a></div>
                 </article>
 
                 <article className={styles.card}>
                   <h3>Projeto E</h3>
                   <p className={styles.sectionBody}>Dashboard analytics com visualizações e filtros personalizados.</p>
-                  <div className={styles.cardFooter}><a href="#">Ver projeto</a></div>
+                  <div className={styles.cardFooter}><a href="#" aria-label="Ver projeto — Projeto E">Ver projeto</a></div>
                 </article>
 
                 <article className={styles.card}>
                   <h3>Projeto F</h3>
                   <p className={styles.sectionBody}>E-commerce headless com otimizações de SEO e performance.</p>
-                  <div className={styles.cardFooter}><a href="#">Ver projeto</a></div>
+                  <div className={styles.cardFooter}><a href="#" aria-label="Ver projeto — Projeto F">Ver projeto</a></div>
                 </article>
 
                 <article className={styles.card}>
                   <h3>Projeto G</h3>
                   <p className={styles.sectionBody}>Plataforma colaborativa para designers e desenvolvedores.</p>
-                  <div className={styles.cardFooter}><a href="#">Ver projeto</a></div>
+                  <div className={styles.cardFooter}><a href="#" aria-label="Ver projeto — Projeto G">Ver projeto</a></div>
                 </article>
 
                 <article className={styles.card}>
                   <h3>Projeto H</h3>
                   <p className={styles.sectionBody}>Microinterações avançadas e biblioteca de animações.</p>
-                  <div className={styles.cardFooter}><a href="#">Ver projeto</a></div>
+                  <div className={styles.cardFooter}><a href="#" aria-label="Ver projeto — Projeto H">Ver projeto</a></div>
                 </article>
 
                 <article className={styles.card}>
                   <h3>Projeto I</h3>
                   <p className={styles.sectionBody}>Integração com APIs externas e pipelines de dados.</p>
-                  <div className={styles.cardFooter}><a href="#">Ver projeto</a></div>
+                  <div className={styles.cardFooter}><a href="#" aria-label="Ver projeto — Projeto I">Ver projeto</a></div>
                 </article>
               </div>
             </div>
@@ -307,7 +308,7 @@ export default function Home() {
               <p className={styles.sectionBody}>Quer trabalhar comigo? Me mande uma mensagem — respondo rápido.</p>
               <div className={styles.contactRow}>
                 <Button href="mailto:giselle@example.com" variant="primary">Enviar email</Button>
-                <Button href="https://wa.link/ld6dq6" variant="secondary" target="_blank" rel="noreferrer">WhatsApp</Button>
+                <Button href="https://wa.link/ld6dq6" variant="secondary" target="_blank" rel="noopener noreferrer">WhatsApp</Button>
               </div>
             </div>
           </section>
@@ -317,9 +318,9 @@ export default function Home() {
         <footer className={styles.siteFooter}>
           <div className={styles.footerInner}>
             <div className={styles.socials}>
-              <a href="https://github.com/giselleandrade1" target="_blank" rel="noreferrer"><Image src="/github.svg" alt="github" width={20} height={20} /></a>
-              <a href="https://www.linkedin.com/in/giselleandrade1" target="_blank" rel="noreferrer"><Image src="/linkedin.svg" alt="linkedin" width={20} height={20} /></a>
-              <a href="https://www.instagram.com/giselleandrade1" target="_blank" rel="noreferrer"><Image src="/instagram.svg" alt="instagram" width={20} height={20} /></a>
+              <a href="https://github.com/giselleandrade1" target="_blank" rel="noopener noreferrer"><Image src="/github.svg" alt="github" width={20} height={20} /></a>
+              <a href="https://www.linkedin.com/in/giselleandrade1" target="_blank" rel="noopener noreferrer"><Image src="/linkedin.svg" alt="linkedin" width={20} height={20} /></a>
+              <a href="https://www.instagram.com/giselleandrade1" target="_blank" rel="noopener noreferrer"><Image src="/instagram.svg" alt="instagram" width={20} height={20} /></a>
             </div>
             <p className={styles.copy}>© {new Date().getFullYear()} Giselle Andrade</p>
           </div>
