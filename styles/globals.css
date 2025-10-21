@@ -59,7 +59,8 @@ body {
   /* Keep a light blue-gray gradient for the light variant to preserve the brand */
   --bg: linear-gradient(180deg,#f7fbff 0%, #eaf6ff 50%, #e2eff9 100%);
   --background-color: #f7fbff;
-  --fg: #071028;
+  --fg: #000000;
+  --foreground: #000000;
   --muted: rgba(7,16,40,0.78);
   /* stronger, higher-contrast accent for light theme */
   --accent: linear-gradient(90deg,#0B66FF,#1749E6);
