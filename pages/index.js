@@ -107,96 +107,9 @@ export default function Home() {
     );
   }
 
-  // High contrast toggle component (visible button)
-  function HighContrastToggle() {
-    const [high, setHigh] = useState(false);
+  // High contrast feature removed — kept intentionally blank to avoid SSR changes
 
-    useEffect(() => {
-      if (typeof window === 'undefined' || typeof document === 'undefined') return;
-      const saved = localStorage.getItem('contrast');
-      const isHigh = saved === 'high' || document.documentElement.getAttribute('data-contrast') === 'high';
-      setHigh(isHigh);
-      if (isHigh) document.documentElement.setAttribute('data-contrast', 'high');
-    }, []);
-
-    const toggle = () => {
-      const next = !high;
-      setHigh(next);
-      if (typeof document !== 'undefined') document.documentElement.setAttribute('data-contrast', next ? 'high' : 'low');
-      try { if (typeof window !== 'undefined') localStorage.setItem('contrast', next ? 'high' : 'low'); } catch (e) { }
-    };
-
-    return (
-      <button
-        type="button"
-        className={styles.contrastBtn}
-        aria-pressed={high}
-        aria-label="Alternar alto contraste"
-        onClick={toggle}
-      >
-        {high ? 'Alto Contraste: ON' : 'Alto Contraste: OFF'}
-      </button>
-    );
-  }
-
-  // Auto-contrast: compute simple luminance from background and toggle data-contrast
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const getLuminanceFromHex = (hex) => {
-      if (!hex) return 0;
-      // remove #
-      const h = hex.replace('#', '');
-      const bigint = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
-      const r = (bigint >> 16) & 255;
-      const g = (bigint >> 8) & 255;
-      const b = bigint & 255;
-      // relative luminance
-      const [rr, gg, bb] = [r, g, b].map(c => {
-        const nc = c / 255;
-        return nc <= 0.03928 ? nc / 12.92 : Math.pow((nc + 0.055) / 1.055, 2.4);
-      });
-      return 0.2126 * rr + 0.7152 * gg + 0.0722 * bb;
-    };
-
-    const evaluateContrast = () => {
-      if (typeof window === 'undefined' || typeof document === 'undefined') return;
-      // try to read the computed background-color of body
-      const bodyStyle = window.getComputedStyle(document.body).backgroundColor;
-      // bodyStyle might be like 'rgb(43,15,58)' or 'rgba(...)' or 'linear-gradient(...)'
-      let luminance = 0;
-      if (bodyStyle.startsWith('rgb')) {
-        const nums = bodyStyle.match(/\d+/g).map(Number);
-        const [r, g, b] = nums;
-        const [rr, gg, bb] = [r, g, b].map(c => {
-          const nc = c / 255;
-          return nc <= 0.03928 ? nc / 12.92 : Math.pow((nc + 0.055) / 1.055, 2.4);
-        });
-        luminance = 0.2126 * rr + 0.7152 * gg + 0.0722 * bb;
-      } else {
-        // fallback: use CSS variable --background-color if set
-        const bg = getComputedStyle(document.documentElement).getPropertyValue('--background-color').trim();
-        if (bg && bg.startsWith('#')) {
-          luminance = getLuminanceFromHex(bg);
-        }
-      }
-
-      // threshold: 0.5 is fairly bright; pick conservative threshold
-      const contrastMode = luminance > 0.45 ? 'low' : 'high';
-      if (typeof document !== 'undefined') document.documentElement.setAttribute('data-contrast', contrastMode);
-    };
-
-    evaluateContrast();
-    window.addEventListener('resize', evaluateContrast);
-    // observe theme changes (if you toggle theme variable later)
-    const obs = new MutationObserver(evaluateContrast);
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['style', 'data-theme'] });
-
-    return () => {
-      window.removeEventListener('resize', evaluateContrast);
-      obs.disconnect();
-    };
-  }, []);
+  // Auto-contrast feature removed to simplify theming
   function toggleTheme() {
     const next = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
@@ -234,7 +147,6 @@ export default function Home() {
 
             <div className={styles.headerActions}>
               <ThemeToggle />
-              <HighContrastToggle />
             </div>
           </div>
         </header>

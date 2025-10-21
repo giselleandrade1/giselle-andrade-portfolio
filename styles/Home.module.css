@@ -114,22 +114,7 @@
 .card h3{margin:0 0 8px 0}
 .card p{margin:0;color:var(--muted)}
 
-/* High contrast tweaks to ensure readability in light theme */
-:root[data-theme="light"][data-contrast="high"] .lead,
-:root[data-theme="light"][data-contrast="high"] .sectionBody,
-:root[data-theme="light"][data-contrast="high"] .card p,
-:root[data-theme="light"][data-contrast="high"] .nav a {
-  color: var(--foreground);
-}
-
-/* Also ensure buttons and CTAs remain bold and visible */
-:root[data-theme="light"][data-contrast="high"] .ctas a,
-:root[data-theme="light"][data-contrast="high"] .btnPrimary {
-  color: #ffffff;
-}
-
-/* Desktop: ensure section title underline uses stronger color in high contrast */
-:root[data-theme="light"][data-contrast="high"] .sectionTitle::after{background: linear-gradient(90deg, rgba(0,0,0,0.95), rgba(0,0,0,0.6));}
+/* High contrast styles removed to simplify theming and avoid explicit data-contrast selectors */
 .cardFooter{margin-top:18px}
 .cardFooter a{color:var(--fg);text-decoration:none;font-weight:800}
 .cardLink{display:inline-block;margin-top:12px;color:var(--fg)}
@@ -161,13 +146,7 @@
   .footerInner .socials{margin-bottom:8px}
 }
 
-  /* High contrast toggle button visible in header */
-  .contrastBtn{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:var(--accent);color:#fff;font-weight:800;border:none;cursor:pointer;font-size:13px}
-  .contrastBtn[aria-pressed="true"]{box-shadow:0 12px 38px rgba(0,0,0,0.18);transform:translateY(-1px)}
-  .contrastBtn:focus{outline:3px solid rgba(0,0,0,0.12);outline-offset:3px}
-
-  /* When high contrast is on, ensure the toggle is strongly visible in light theme */
-  :root[data-theme="light"][data-contrast="high"] .contrastBtn{background: #000;color:#fff}
+  /* contrast toggle removed */
 .copy{margin:0;opacity:0.9}
 
 /* Desktop: horizontal panels */
