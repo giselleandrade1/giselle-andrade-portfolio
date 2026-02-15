@@ -32,16 +32,6 @@
 .logoInner{display:inline-flex;gap:12px;align-items:center}
 .logoAvatar{border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,0.25)}
 .logoText{font-weight:800;color:var(--fg);letter-spacing:0.2px}
-.themeToggle{background:transparent;border:1px solid rgba(232,246,255,0.06);color:var(--fg);padding:8px;border-radius:10px}
-
-/* Theme toggle styles */
-.themeToggleBtn{width:46px;height:30px;border-radius:999px;display:inline-flex;align-items:center;padding:4px;background:linear-gradient(90deg, rgba(232,246,255,0.03), rgba(232,246,255,0.01));border:1px solid rgba(232,246,255,0.06);cursor:pointer;transition:all .28s var(--transition-ease)}
-.themeToggleKnob{width:22px;height:22px;background:linear-gradient(180deg,rgba(255,255,255,0.98), rgba(230,240,255,0.92));border-radius:50%;box-shadow:0 6px 18px rgba(8,30,60,0.22);transform:translateX(0);transition:transform .36s var(--transition-ease), background .36s var(--transition-ease)}
-.themeToggleBtn[data-theme="dark"]{background:linear-gradient(90deg, rgba(30,90,170,0.12), rgba(20,60,120,0.06));}
-.themeToggleBtn[data-theme="dark"] .themeToggleKnob{background:linear-gradient(180deg,rgba(245,250,255,0.98), rgba(225,235,250,0.9));}
-.themeIcon{width:18px;height:18px;display:block}
-.themeToggleKnob.sun{background:linear-gradient(180deg,#E6F6FF,#CFEFFF);} /* subtle pale-blue sun knob */
-.themeToggleKnob.moon{background:linear-gradient(180deg,#DDE8FF,#AFC8FF);} /* moon remains bluish */
 
 /* Checkbox switch for theme toggling */
 .switch{display:inline-flex;align-items:center}
@@ -57,16 +47,11 @@
 .switch input:not(:checked) + .slider .iconDark{opacity:0;transform:translateX(-6px)}
 .switch input:focus + .slider{outline:3px solid rgba(30,90,170,0.16);outline-offset:3px}
 
-/* Make header avatar link and hero avatar clearly clickable and above overlays */
-.headerInner > a{display:inline-flex;align-items:center;gap:10px;position:relative;z-index:80;cursor:pointer}
-.avatarWrap a{display:inline-block;width:100%;height:100%;position:relative;z-index:80;cursor:pointer}
 .avatarWrap img{display:block}
 
 .nav{display:flex;gap:12px;align-items:center;position:relative}
 .nav a{color:var(--fg);padding:6px 10px;border-radius:8px;font-weight:700;text-decoration:none;position:relative;font-size:14px}
 .nav a:hover{transform:translateY(-2px)}
-.navIndicator{position:absolute;height:40px;border-radius:999px;top:50%;left:0;transform:translateY(-50%);transition:transform .28s cubic-bezier(.22,.9,.3,1),width .28s,background .28s;z-index:0}
-
 .nav a::after{content:'';position:absolute;inset:auto 10% -6px 10%;height:6px;border-radius:6px;background:transparent;transition:background .28s}
 
 /* main: mobile-first vertical */
@@ -76,9 +61,6 @@
 
 .heroInner{display:flex;gap:18px;align-items:center;position:relative;flex-direction:column;justify-content:center}
 .avatarWrap{width:140px;height:140px;border-radius:18px;overflow:hidden;box-shadow:0 16px 40px rgba(10,40,80,0.14);flex-shrink:0;transform:translateZ(0)}
-.avatarArtSvg{width:100%;height:100%;display:block;border-radius:18px;box-shadow:0 28px 70px rgba(10,40,80,0.18);transition:transform .5s;transform-origin:center}
-.avatarArtSvg:hover{transform:rotate(-2deg) scale(1.02)}
-.avatarArtSvg path{mix-blend-mode:overlay}
 
 /* Simple square avatar image */
 .avatarSimple{width:100%;height:100%;object-fit:cover;display:block;border-radius:16px}
@@ -87,8 +69,6 @@
 .ctas{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
 .ctas a{display:inline-flex;align-items:center;justify-content:center;padding:12px 16px;border-radius:12px;background:transparent;border:1px solid rgba(232,246,255,0.06);color:var(--fg);text-decoration:none;font-weight:800;transition:transform .22s,box-shadow .22s}
 .ctas a:hover{transform:translateY(-4px);box-shadow:0 22px 60px rgba(30,90,170,0.14)}
-.primary{background-image:var(--accent);background-size:200% 100%;color:white;box-shadow:0 18px 60px rgba(30,90,170,0.18)}
-.secondary{background:rgba(232,246,255,0.02);-webkit-backdrop-filter: blur(6px);backdrop-filter: blur(6px)}
 
 /* Reusable Button classes */
 .btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:12px;font-weight:800;text-decoration:none;border:1px solid rgba(232,246,255,0.06);cursor:pointer;transition:transform .22s,box-shadow .22s,opacity .18s;will-change:transform}
@@ -116,23 +96,14 @@
 /* High contrast styles removed to simplify theming and avoid explicit data-contrast selectors */
 .cardFooter{margin-top:18px}
 .cardFooter a{color:var(--fg);text-decoration:none;font-weight:800}
-.cardLink{display:inline-block;margin-top:12px;color:var(--fg)}
 
 .contactRow{display:flex;align-items:center;gap:14px;margin-top:18px;flex-wrap:wrap}
-.socialsInlineContact{display:flex;gap:10px;align-items:center}
-.socialLinkCompact{display:inline-flex;padding:8px;border-radius:10px;background:rgba(232,246,255,0.02)}
-
-/* Ensure footer/social icons scale and inherit color */
-.socials a img, .socials a svg { width:20px; height:20px; display:block; filter:grayscale(0); }
-.socials a { color: var(--muted); opacity:0.95 }
-.socials a:hover { color: var(--fg); opacity:1 }
 
 .skills{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
 .skill{background:linear-gradient(90deg, rgba(232,246,255,0.03), rgba(232,246,255,0.01));padding:8px 12px;border-radius:999px;font-weight:800;border:1px solid rgba(232,246,255,0.03)}
 
 .siteFooter{width:100%;border-top:1px solid rgba(232,246,255,0.04);padding:14px 0;display:flex;align-items:center;justify-content:center}
 .footerInner{max-width:1280px;width:100%;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.footerInner .socials{order:1}
 .footerInner .copy{order:2;margin-left:auto}
 
 /* Mobile adjustments: stack header and footer */
@@ -142,7 +113,6 @@
   .logoInner{order:1}
   .headerActions{order:3;margin-top:6px}
   .footerInner{flex-direction:column;align-items:flex-start;padding:8px}
-  .footerInner .socials{margin-bottom:8px}
 }
 
   /* contrast toggle removed */

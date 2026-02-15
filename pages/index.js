@@ -1,48 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
-import Image from 'next/image';
 import styles from '@/styles/Home.module.css';
 
-// Small utility to generate an organic blob path (normalized)
-function randomBlobPath(seed = 0, points = 6, radius = 42) {
-  // Smooth blob generator using cubic bezier control points
-  const rnd = (v) => {
-    const x = Math.sin(v * 374.345 + seed * 12.9898) * 43758.5453;
-    return x - Math.floor(x);
-  };
-
-  const pts = [];
-  for (let i = 0; i < points; i++) {
-    const angle = (i / points) * Math.PI * 2;
-    const r = radius + (rnd(i + 1) - 0.5) * 16;
-    pts.push([50 + Math.cos(angle) * r, 50 + Math.sin(angle) * r]);
-  }
-
-  // Catmull-Rom to Bezier conversion for smooth curve through pts
-  const crToBezier = (p0, p1, p2, p3) => {
-    const tension = 0.5;
-    const c1x = p1[0] + (p2[0] - p0[0]) * tension / 6;
-    const c1y = p1[1] + (p2[1] - p0[1]) * tension / 6;
-    const c2x = p2[0] - (p3[0] - p1[0]) * tension / 6;
-    const c2y = p2[1] - (p3[1] - p1[1]) * tension / 6;
-    return { c1x, c1y, c2x, c2y };
-  };
-
-  let d = '';
-  for (let i = 0; i < pts.length; i++) {
-    const p0 = pts[(i - 1 + pts.length) % pts.length];
-    const p1 = pts[i];
-    const p2 = pts[(i + 1) % pts.length];
-    const p3 = pts[(i + 2) % pts.length];
-    if (i === 0) d += `M ${p1[0].toFixed(2)} ${p1[1].toFixed(2)} `;
-    const bz = crToBezier(p0, p1, p2, p3);
-    d += `C ${bz.c1x.toFixed(2)} ${bz.c1y.toFixed(2)}, ${bz.c2x.toFixed(2)} ${bz.c2y.toFixed(2)}, ${p2[0].toFixed(2)} ${p2[1].toFixed(2)} `;
-  }
-  d += 'Z';
-  return d;
-}
-
-function AvatarArt({ size = 180, seed = 1, src, alt = 'Giselle avatar' }) {
+function AvatarArt({ size = 180, src, alt = 'Giselle avatar' }) {
   // Simple square avatar with rounded corners — image fills the container
   return (
     <img src={src} alt={alt} width={size} height={size} className={styles.avatarSimple} />
@@ -67,7 +27,7 @@ function Button({ href, variant = 'primary', children, target, rel, onClick, cla
 }
 
 export default function Home() {
-  const [theme, setTheme] = useState('dark');
+  const [, setTheme] = useState('dark');
   useEffect(() => {
     const saved = typeof window !== 'undefined' ? localStorage.getItem('theme') : null;
     if (saved) setTheme(saved);
@@ -109,35 +69,22 @@ export default function Home() {
 
   // High contrast feature removed — kept intentionally blank to avoid SSR changes
 
-  // Auto-contrast feature removed to simplify theming
-  function toggleTheme() {
-    const next = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
-    if (typeof document !== 'undefined') {
-      document.documentElement.setAttribute('data-theme', next);
-    }
-    try { if (typeof window !== 'undefined') localStorage.setItem('theme', next); } catch (e) { }
-  }
-
   return (
     <>
       <Head>
         <title>Giselle Andrade — Front-end Developer</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="description" content="Portfólio — Giselle Andrade, Front-end Developer" />
-        <link rel="icon" href="/github.svg" />
       </Head>
 
       <div className={styles.page}>
         <a href="#main" className={styles.skipLink}>Pular para o conteúdo</a>
         <header className={styles.header}>
           <div className={styles.headerInner}>
-            <a href="https://github.com/giselleandrade1" target="_blank" rel="noopener noreferrer" aria-label="Giselle Andrade GitHub profile">
-              <div className={styles.logoInner}>
-                <img src="https://avatars.githubusercontent.com/u/187031179?v=4" alt="Giselle" width={40} height={40} className={styles.logoAvatar} />
-                <span className={styles.logoText}>Giselle Andrade</span>
-              </div>
-            </a>
+            <div className={styles.logoInner}>
+              <img src="https://avatars.githubusercontent.com/u/187031179?v=4" alt="Giselle" width={40} height={40} className={styles.logoAvatar} />
+              <span className={styles.logoText}>Giselle Andrade</span>
+            </div>
 
             <nav className={styles.nav} aria-label="Main">
               <a href="#about">Sobre</a>
@@ -155,9 +102,7 @@ export default function Home() {
           <section id="hero" className={styles.section}>
             <div className={styles.heroInner}>
               <div className={styles.avatarWrap}>
-                <a href="https://github.com/giselleandrade1" target="_blank" rel="noopener noreferrer" aria-label="Giselle GitHub">
-                  <AvatarArt size={180} seed={3} src="https://avatars.githubusercontent.com/u/187031179?v=4" />
-                </a>
+                <AvatarArt size={180} src="https://avatars.githubusercontent.com/u/187031179?v=4" />
               </div>
 
               <div>
@@ -262,11 +207,6 @@ export default function Home() {
 
         <footer className={styles.siteFooter}>
           <div className={styles.footerInner}>
-            <div className={styles.socials}>
-              <a href="https://github.com/giselleandrade1" target="_blank" rel="noopener noreferrer"><Image src="/github.svg" alt="github" width={20} height={20} /></a>
-              <a href="https://www.linkedin.com/in/giselleandrade1" target="_blank" rel="noopener noreferrer"><Image src="/linkedin.svg" alt="linkedin" width={20} height={20} /></a>
-              <a href="https://www.instagram.com/giselleandrade1" target="_blank" rel="noopener noreferrer"><Image src="/instagram.svg" alt="instagram" width={20} height={20} /></a>
-            </div>
             <p className={styles.copy}>© {new Date().getFullYear()} Giselle Andrade</p>
           </div>
         </footer>
