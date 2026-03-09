@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
+import Image from 'next/image';
 import styles from '@/styles/Home.module.css';
 
 function AvatarArt({ size = 180, src, alt = 'Giselle avatar' }) {
   // Simple square avatar with rounded corners — image fills the container
   return (
-    <img src={src} alt={alt} width={size} height={size} className={styles.avatarSimple} />
+    <Image src={src} alt={alt} width={size} height={size} className={styles.avatarSimple} />
   );
 }
 
@@ -58,10 +59,10 @@ export default function Home() {
 
     return (
       <label className={styles.switch} htmlFor="toggle-dark-mode">
-        <input aria-label="Alternar tema claro/escuro" aria-pressed={checked} type="checkbox" id="toggle-dark-mode" checked={checked} onChange={handleChange} />
+        <input aria-label="Alternar tema claro/escuro" type="checkbox" id="toggle-dark-mode" checked={checked} onChange={handleChange} />
         <span className={styles.slider} aria-hidden>
-          <img src="/moon-stars.svg" alt="" aria-hidden className={styles.iconDark} />
-          <img src="/sun.svg" alt="" aria-hidden className={styles.iconLight} />
+          <Image src="/moon-stars.svg" alt="" aria-hidden className={styles.iconDark} width={20} height={20} />
+          <Image src="/sun.svg" alt="" aria-hidden className={styles.iconLight} width={20} height={20} />
         </span>
       </label>
     );
@@ -82,7 +83,7 @@ export default function Home() {
         <header className={styles.header}>
           <div className={styles.headerInner}>
             <div className={styles.logoInner}>
-              <img src="https://avatars.githubusercontent.com/u/187031179?v=4" alt="Giselle" width={40} height={40} className={styles.logoAvatar} />
+              <Image src="https://avatars.githubusercontent.com/u/187031179?v=4" alt="Giselle" width={40} height={40} className={styles.logoAvatar} />
               <span className={styles.logoText}>Giselle Andrade</span>
             </div>
 
