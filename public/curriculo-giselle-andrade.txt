@@ -1,0 +1,44 @@
+Giselle Andrade
+Full Stack Developer in Progress | Backend Focus
+Sao Paulo, SP - Brasil
+
+Contato
+E-mail: giselleandradelourenco@gmail.com
+LinkedIn: https://linkedin.com/in/giselleandrades2
+GitHub: https://github.com/giselleandrade1
+Portfolio: https://giselleandrade1-dev.vercel.app/
+
+Resumo profissional
+Desenvolvedora Full Stack em evolucao, com foco em Backend, Java, JavaScript,
+TypeScript, Node.js, Next.js e React. Interesse em arquitetura de sistemas,
+APIs, bancos de dados, interfaces modernas, performance, acessibilidade e
+solucoes digitais orientadas a produto.
+
+Competencias principais
+- Software Development
+- Backend Development
+- Frontend Development
+- UI/UX Design
+- Web Development
+- App Development
+- Database & Data
+- Cloud & DevOps
+
+Tecnologias
+Languages: Java, JavaScript, TypeScript, Python, PHP
+Frontend: HTML5, CSS3, React, Next.js, Tailwind CSS
+Backend: Node.js, Express, NestJS, Spring, JWT
+Databases: MySQL, PostgreSQL, MongoDB, SQL Server
+Cloud & DevOps: AWS, Azure, Vercel, Docker
+Tools: Git, GitHub, Postman, Figma, Notion
+
+Projetos
+- Portfolio: https://giselleandrade1-dev.vercel.app/
+- Venux Bijoux: https://venuxbijoux-app.vercel.app/
+- Gisten Lixt: https://gisten-lixt.vercel.app/
+- Kinvo Test: https://kinvofrontendtest.vercel.app/
+
+Objetivo
+Atuar em projetos reais de desenvolvimento de software, backend, full stack,
+interfaces modernas e solucoes digitais escalaveis, contribuindo com criterio
+tecnico, organizacao, aprendizado continuo e visao de produto.
