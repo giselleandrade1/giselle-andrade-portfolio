@@ -1,44 +1,75 @@
 Giselle Andrade
-Full Stack Developer in Progress | Backend Focus
-Sao Paulo, SP - Brasil
+Desenvolvedora Full Stack em formação | Foco em Backend
+São Paulo, SP - Brasil
 
 Contato
 E-mail: giselleandradelourenco@gmail.com
 LinkedIn: https://linkedin.com/in/giselleandrades2
 GitHub: https://github.com/giselleandrade1
-Portfolio: https://giselleandrade1-dev.vercel.app/
+Portfólio: https://giselleandrade1-dev.vercel.app/
 
-Resumo profissional
-Desenvolvedora Full Stack em evolucao, com foco em Backend, Java, JavaScript,
+Resumo
+Desenvolvedora Full Stack em evolução, com foco em Backend, Java, JavaScript,
 TypeScript, Node.js, Next.js e React. Interesse em arquitetura de sistemas,
 APIs, bancos de dados, interfaces modernas, performance, acessibilidade e
-solucoes digitais orientadas a produto.
+soluções digitais orientadas a produto.
 
-Competencias principais
-- Software Development
-- Backend Development
-- Frontend Development
-- UI/UX Design
-- Web Development
-- App Development
-- Database & Data
-- Cloud & DevOps
+Competências principais
+- Desenvolvimento de Software
+- Desenvolvimento Backend
+- Desenvolvimento Frontend
+- UI/UX e Interfaces
+- Desenvolvimento Web
+- Bancos de Dados
+- Cloud e DevOps
 
 Tecnologias
-Languages: Java, JavaScript, TypeScript, Python, PHP
+Linguagens: Java, JavaScript, TypeScript, Python, PHP
 Frontend: HTML5, CSS3, React, Next.js, Tailwind CSS
 Backend: Node.js, Express, NestJS, Spring, JWT
-Databases: MySQL, PostgreSQL, MongoDB, SQL Server
-Cloud & DevOps: AWS, Azure, Vercel, Docker
-Tools: Git, GitHub, Postman, Figma, Notion
+Bancos de dados: MySQL, PostgreSQL, MongoDB, SQL Server
+Cloud e DevOps: AWS, Azure, Vercel, Docker
+Ferramentas: Git, GitHub, Postman, Figma, Notion
 
-Projetos
-- Portfolio: https://giselleandrade1-dev.vercel.app/
-- Venux Bijoux: https://venuxbijoux-app.vercel.app/
-- Gisten Lixt: https://gisten-lixt.vercel.app/
-- Kinvo Test: https://kinvofrontendtest.vercel.app/
+Projetos selecionados
+
+LembraFácil
+Demo: https://lembrafacil-task-manager.vercel.app/
+Código: https://github.com/giselleandrade1/lembrafacil-task-manager
+Gerenciador de tarefas acessível e offline com planejamento, priorização,
+analytics e serviço Java opcional para regras e algoritmos.
+
+Venux Bijoux
+Demo: https://venuxbijoux-app.vercel.app/
+Código: https://github.com/giselleandrade1/venux-bijoux-ecommerce
+E-commerce em Next.js e JavaScript com catálogo, autenticação, carrinho,
+favoritos, pedidos e APIs internas.
+
+Kinvo Frontend Challenge
+Demo: https://kinvofrontendtest.vercel.app/
+Código: https://github.com/giselleandrade1/kinvo-frontend-challenge
+Interface responsiva em React e TypeScript com consumo de API, filtros,
+ordenação, paginação e tratamento de estados.
+
+GistenLixt
+Demo: https://gisten-lixt.vercel.app/
+Código: https://github.com/giselleandrade1/gistenlixt-finance_app
+Sistema responsivo de autenticação e gerenciamento de clientes com Next.js,
+TypeScript, controle de acesso e SQLite.
+
+Control Consultoria
+Demo: https://control-consultoria-website.vercel.app/
+Código: https://github.com/giselleandrade1/control-consultoria-website
+Site institucional responsivo em HTML, CSS e JavaScript, com acessibilidade,
+SEO, temas e fluxo de contato por WhatsApp.
+
+Portfólio Giselle Andrade
+Demo: https://giselleandrade1-dev.vercel.app/
+Código: https://github.com/giselleandrade1/giselle-andrade-portfolio
+Portfólio em Next.js, React e TypeScript para apresentar projetos,
+competências e trajetória de desenvolvimento.
 
 Objetivo
 Atuar em projetos reais de desenvolvimento de software, backend, full stack,
-interfaces modernas e solucoes digitais escalaveis, contribuindo com criterio
-tecnico, organizacao, aprendizado continuo e visao de produto.
+interfaces modernas e soluções digitais escaláveis, contribuindo com critério
+técnico, organização, aprendizado contínuo e visão de produto.

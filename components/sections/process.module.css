@@ -1,0 +1,147 @@
+.processGrid {
+  position: relative;
+  display: grid;
+  gap: var(--grid-gap);
+  padding: 0;
+  margin: var(--cluster-gap) 0 0;
+  list-style: none;
+}
+
+.processGrid::before {
+  position: absolute;
+  top: 2.75rem;
+  bottom: 2.75rem;
+  left: 1.72rem;
+  width: 1px;
+  background: linear-gradient(180deg, var(--cyan), var(--border), var(--violet));
+  content: "";
+  opacity: 0.55;
+}
+
+.step {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--control-lg) minmax(0, 1fr);
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--card-padding);
+  background: color-mix(in srgb, var(--surface-1) 88%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.stepTop {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: var(--space-2);
+}
+
+.stepIcon {
+  display: grid;
+  width: var(--control-md);
+  height: var(--control-md);
+  place-items: center;
+  color: var(--cyan);
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 1.75rem var(--glow-cyan);
+}
+
+.stepNumber {
+  color: var(--text-muted);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+}
+
+.step h3 {
+  margin-top: 0.15rem;
+  color: var(--text-primary);
+  font-size: var(--heading-sm);
+}
+
+.step p {
+  margin-top: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.62;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .step:hover {
+    border-color: var(--border-hover);
+    box-shadow: var(--shadow-soft);
+    transform: translateY(-0.2rem);
+  }
+}
+
+@media (min-width: 44rem) {
+  .processGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .processGrid::before {
+    display: none;
+  }
+
+  .step {
+    grid-template-columns: 1fr;
+  }
+
+  .stepTop {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+  }
+}
+
+@media (min-width: 62rem) {
+  .processGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 80rem) {
+  .processGrid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+
+  .processGrid::before {
+    top: 2.62rem;
+    right: 7.5%;
+    bottom: auto;
+    left: 7.5%;
+    display: block;
+    width: auto;
+    height: 1px;
+    background: linear-gradient(90deg, var(--cyan), var(--border), var(--violet));
+  }
+
+  .step {
+    padding: var(--space-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .processGrid::before,
+  .step,
+  .stepIcon {
+    border-color: CanvasText;
+  }
+}
