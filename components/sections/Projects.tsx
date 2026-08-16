@@ -1,14 +1,21 @@
 import Image from "next/image";
 
 import { projects } from "@/data/projects";
-import type { Project } from "@/data/types";
 import { Icon } from "@/components/ui/Icon";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { formatMessage, type Messages } from "@/i18n";
 
 import { ProjectFilters } from "./ProjectFilters";
 import styles from "./sections.module.css";
 
-function ProjectCard({ project }: { project: Project }) {
+type Project = (typeof projects)[number];
+
+function ProjectCard({
+  messages,
+  project,
+}: Readonly<{ messages: Messages["projects"]; project: Project }>) {
+  const copy = messages.items[project.slug];
+
   return (
     <article
       className={styles.projectCard}
@@ -19,51 +26,54 @@ function ProjectCard({ project }: { project: Project }) {
     >
       <div className={styles.projectMedia}>
         <Image
-          alt={project.previewAlt}
+          alt={copy.previewAlt}
           fill
-          sizes="(max-width: 699px) calc(100vw - 2rem), (max-width: 1199px) 48vw, (max-width: 1440px) 52vw, 44rem"
+          sizes="(max-width: 699px) calc(100vw - 2rem), (max-width: 1199px) 48vw, (max-width: 1599px) 31vw, 464px"
           src={project.preview}
         />
-        <span className={styles.projectStatus}>{project.status}</span>
+        <span className={styles.projectStatus}>{messages.live}</span>
       </div>
 
       <div className={styles.projectBody}>
-        <p className={styles.projectMeta}>{project.category} · Selected work</p>
+        <p className={styles.projectMeta}>{messages.filters[project.category]} · {messages.selectedWork}</p>
         <h3>{project.name}</h3>
-        <p className={styles.projectDescription}>{project.description}</p>
+        <p className={styles.projectDescription}>{copy.description}</p>
 
-        <div className={styles.tagList} aria-label={`Technologies used in ${project.name}`}>
+        <ul
+          className={styles.tagList}
+          aria-label={formatMessage(messages.technologiesLabel, { project: project.name })}
+        >
           {project.technologies.map((technology) => (
-            <span className={styles.tag} key={technology}>{technology}</span>
+            <li className={styles.tag} key={technology}>{technology}</li>
           ))}
-        </div>
+        </ul>
 
-        {project.caseStudy ? (
+        {copy.caseStudy ? (
           <details className={styles.caseStudy}>
             <summary>
-              Project notes
+              {messages.projectNotes}
               <Icon name="arrowDown" size="xs" />
             </summary>
             <dl className={styles.caseContent}>
               <div>
-                <dt>Challenge</dt>
-                <dd>{project.caseStudy.challenge}</dd>
+                <dt>{messages.challenge}</dt>
+                <dd>{copy.caseStudy.challenge}</dd>
               </div>
               <div>
-                <dt>Solution</dt>
-                <dd>{project.caseStudy.solution}</dd>
+                <dt>{messages.solution}</dt>
+                <dd>{copy.caseStudy.solution}</dd>
               </div>
               <div>
-                <dt>Key decisions</dt>
+                <dt>{messages.keyDecisions}</dt>
                 <dd>
                   <ul className={styles.decisionList}>
-                    {project.caseStudy.keyDecisions.map((decision) => <li key={decision}>{decision}</li>)}
+                    {copy.caseStudy.keyDecisions.map((decision) => <li key={decision}>{decision}</li>)}
                   </ul>
                 </dd>
               </div>
               <div>
-                <dt>Result</dt>
-                <dd>{project.caseStudy.result}</dd>
+                <dt>{messages.result}</dt>
+                <dd>{copy.caseStudy.result}</dd>
               </div>
             </dl>
           </details>
@@ -71,23 +81,23 @@ function ProjectCard({ project }: { project: Project }) {
 
         <div className={styles.projectActions}>
           <a
-            aria-label={`View live demo of ${project.name} (opens in a new tab)`}
+            aria-label={formatMessage(messages.liveDemoLabel, { project: project.name })}
             className={styles.projectLink}
             href={project.demoUrl}
             rel="noopener noreferrer"
             target="_blank"
           >
-            Live demo
+            {messages.liveDemo}
             <Icon name="arrowUpRight" size="sm" />
           </a>
           <a
-            aria-label={`View ${project.name} source code on GitHub (opens in a new tab)`}
+            aria-label={formatMessage(messages.sourceCodeLabel, { project: project.name })}
             className={styles.projectLink}
             href={project.repositoryUrl}
             rel="noopener noreferrer"
             target="_blank"
           >
-            Source code
+            {messages.sourceCode}
             <Icon name="github" size="sm" />
           </a>
         </div>
@@ -96,23 +106,25 @@ function ProjectCard({ project }: { project: Project }) {
   );
 }
 
-export function Projects() {
+export function Projects({ messages }: Readonly<{ messages: Messages["projects"] }>) {
   return (
-    <section className="section" id="projects" aria-label="Selected projects">
+    <section className="section" id="projects" aria-label={messages.sectionLabel}>
       <div className="container">
         <div className={styles.sectionHeaderRow} data-reveal>
           <SectionHeading
-            description="Real, deployed work presented with the context behind the interface: problem, implementation choices, and current limitations."
-            eyebrow="Selected projects"
-            title="Products that turn technical practice into something you can use."
+            description={messages.description}
+            eyebrow={messages.eyebrow}
+            title={messages.title}
           />
-          <p className={styles.sectionNote}>Screenshots captured from live deployments · Repository and demo URLs validated.</p>
+          <p className={styles.sectionNote}>{messages.note}</p>
         </div>
 
-        <ProjectFilters totalProjects={projects.length} />
+        <ProjectFilters messages={messages} totalProjects={projects.length} />
 
         <div className={styles.projectGrid} data-project-grid id="project-list">
-          {projects.map((project) => <ProjectCard key={project.slug} project={project} />)}
+          {projects.map((project) => (
+            <ProjectCard key={project.slug} messages={messages} project={project} />
+          ))}
         </div>
       </div>
     </section>

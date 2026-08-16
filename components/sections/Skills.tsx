@@ -1,5 +1,6 @@
 import { skills } from "@/data/skills";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import type { Messages } from "@/i18n";
 
 import styles from "./sections.module.css";
 
@@ -34,36 +35,40 @@ const technologyMarks: Record<string, string> = {
   notion: "NT",
 };
 
-export function Skills() {
+type SkillsProps = {
+  messages: Messages["skills"];
+};
+
+export function Skills({ messages }: SkillsProps) {
   return (
-    <section className="section" id="skills" aria-label="Technical skills">
+    <section className="section" id="skills" aria-label={messages.sectionLabel}>
       <div className="container">
         <div className={styles.sectionHeaderRow} data-reveal>
           <SectionHeading
-            description="A growing toolkit for interfaces, APIs, data, delivery, and the engineering work that connects them."
-            eyebrow="Technical toolkit"
-            title="Tools chosen for the problem, not for the trend."
+            description={messages.description}
+            eyebrow={messages.eyebrow}
+            title={messages.title}
           />
-          <p className={styles.sectionNote}>Six practical areas · No remote icon requests · Lightweight, local interface marks.</p>
+          <p className={styles.sectionNote}>{messages.note}</p>
         </div>
 
         <div className={styles.stackGrid}>
           {skills.map((group, index) => (
             <article className={styles.stackCard} data-reveal key={group.category}>
               <div className={styles.stackCardHeader}>
-                <h3>{group.category}</h3>
+                <h3>{messages.categories[group.category]}</h3>
                 <span className={styles.stackIndex} aria-hidden="true">/{String(index + 1).padStart(2, "0")}</span>
               </div>
-              <div className={styles.technologyList}>
+              <ul className={styles.technologyList}>
                 {group.technologies.map((technology) => (
-                  <span className={styles.technology} key={technology.name}>
+                  <li className={styles.technology} key={technology.name}>
                     <span className={styles.technologyMark} aria-hidden="true">
                       {technologyMarks[technology.slug] ?? technology.name.slice(0, 2)}
                     </span>
                     <span>{technology.name}</span>
-                  </span>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </article>
           ))}
         </div>

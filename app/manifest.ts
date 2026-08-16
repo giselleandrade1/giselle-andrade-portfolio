@@ -1,12 +1,17 @@
 import type { MetadataRoute } from "next";
+import { cookies } from "next/headers";
 
-import { siteConfig } from "@/lib/seo";
+import { defaultLocale, getMessages, isLocale, localeCookieName } from "@/i18n";
 
-export default function manifest(): MetadataRoute.Manifest {
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  const storedLocale = (await cookies()).get(localeCookieName)?.value;
+  const locale = isLocale(storedLocale) ? storedLocale : defaultLocale;
+  const messages = await getMessages(locale);
+
   return {
-    name: "Giselle Andrade — Full Stack Developer",
-    short_name: "Giselle.dev",
-    description: siteConfig.description,
+    name: messages.manifest.name,
+    short_name: messages.manifest.shortName,
+    description: messages.metadata.description,
     start_url: "/",
     display: "standalone",
     background_color: "#030711",

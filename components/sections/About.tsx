@@ -1,70 +1,50 @@
-import { profile } from "@/data/profile";
 import { Icon } from "@/components/ui/Icon";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import type { Messages } from "@/i18n";
 
 import styles from "./sections.module.css";
 
-const principles = [
-  {
-    title: "Engineering foundations",
-    description: "Business rules, data, APIs, and architecture shape the product from the inside out.",
-  },
-  {
-    title: "Thoughtful interfaces",
-    description: "Clear hierarchy, responsive behavior, and accessible interaction are part of software quality.",
-  },
-  {
-    title: "Continuous practice",
-    description: "Real projects turn study into documented decisions, working features, and better judgment.",
-  },
-] as const;
+type AboutProps = {
+  messages: Messages["about"];
+};
 
-const highlights = [
-  "Backend Development",
-  "Scalable Applications",
-  "Clean Code",
-  "UI/UX Awareness",
-  "Real Projects",
-  "Continuous Learning",
-] as const;
-
-export function About() {
+export function About({ messages }: AboutProps) {
   return (
-    <section className="section" id="about" aria-label="About Giselle Andrade">
+    <section className="section" id="about" aria-label={messages.sectionLabel}>
       <div className="container">
         <div className={styles.sectionHeaderRow} data-reveal>
           <SectionHeading
-            description="I connect backend thinking, interface craft, and product awareness to build software that is useful, understandable, and ready to evolve."
-            eyebrow="About me"
-            title="Technology with intent, from system logic to the final interaction."
+            description={messages.description}
+            eyebrow={messages.eyebrow}
+            title={messages.title}
           />
-          <p className={styles.sectionNote}>Based in {profile.location} · Building in public through documented, deployed projects.</p>
+          <p className={styles.sectionNote}>{messages.note}</p>
         </div>
 
         <div className={styles.aboutLayout}>
           <article className={`${styles.aboutStory} ${styles.surfaceCard}`} data-reveal>
             <p className={styles.storyLabel}>
               <Icon name="terminal" size="sm" />
-              How I work
+              {messages.storyLabel}
             </p>
-            <h3>Reliable foundations. Clear experiences.</h3>
-            <p>{profile.bio}</p>
-            <div className={styles.highlights} aria-label="Areas of focus">
-              {highlights.map((highlight) => <span key={highlight}>{highlight}</span>)}
-            </div>
+            <h3>{messages.storyTitle}</h3>
+            <p>{messages.bio}</p>
+            <ul className={styles.highlights} aria-label={messages.highlightsLabel}>
+              {messages.highlights.map((highlight) => <li key={highlight}>{highlight}</li>)}
+            </ul>
           </article>
 
-          <div className={styles.principles} aria-label="Development principles">
-            {principles.map((principle, index) => (
-              <article className={styles.principle} data-reveal key={principle.title}>
+          <ul className={styles.principles} aria-label={messages.principlesLabel}>
+            {messages.principles.map((principle, index) => (
+              <li className={styles.principle} data-reveal key={principle.title}>
                 <span className={styles.principleNumber} aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
                 <div>
                   <h3>{principle.title}</h3>
                   <p>{principle.description}</p>
                 </div>
-              </article>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       </div>
     </section>

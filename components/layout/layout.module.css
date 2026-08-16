@@ -339,6 +339,14 @@
   font-size: var(--text-xs);
 }
 
+.footerBottom span:last-child {
+  hyphens: auto;
+  overflow-wrap: break-word;
+  text-align: justify;
+  text-align-last: left;
+  word-break: normal;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .navLink:hover,
   .mobileNavLink:hover {
@@ -370,6 +378,13 @@
   .footerLinks {
     display: flex;
     flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 25rem) {
+  .footerBottom span:last-child {
+    text-align: left;
+    text-align-last: auto;
   }
 }
 

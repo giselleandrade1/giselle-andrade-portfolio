@@ -20,6 +20,7 @@
 
 .step {
   position: relative;
+  container-type: inline-size;
   display: grid;
   grid-template-columns: var(--control-lg) minmax(0, 1fr);
   gap: var(--space-3);
@@ -73,7 +74,12 @@
   margin-top: var(--space-2);
   color: var(--text-muted);
   font-size: var(--text-sm);
+  hyphens: auto;
   line-height: 1.62;
+  overflow-wrap: break-word;
+  text-align: justify;
+  text-align-last: left;
+  word-break: normal;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -104,6 +110,13 @@
   }
 }
 
+@container (max-width: 22rem) {
+  .step p {
+    text-align: left;
+    text-align-last: auto;
+  }
+}
+
 @media (min-width: 62rem) {
   .processGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -111,24 +124,8 @@
 }
 
 @media (min-width: 80rem) {
-  .processGrid {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: var(--space-3);
-  }
-
-  .processGrid::before {
-    top: 2.62rem;
-    right: 7.5%;
-    bottom: auto;
-    left: 7.5%;
-    display: block;
-    width: auto;
-    height: 1px;
-    background: linear-gradient(90deg, var(--cyan), var(--border), var(--violet));
-  }
-
   .step {
-    padding: var(--space-4);
+    padding: var(--card-padding);
   }
 }
 

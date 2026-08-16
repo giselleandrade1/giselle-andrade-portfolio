@@ -72,11 +72,13 @@ public/
 
 `app/layout.tsx` concentra responsabilidades globais, como idioma do documento, fontes, metadados e inicialização do tema. `app/page.tsx` compõe a página usando Server Components por padrão.
 
-Componentes interativos, como menu mobile, seletor de tema, navegação por seção e ações de contato, são Client Components isolados. Dados estáticos não dependem de hooks nem são enviados ao navegador como módulos executáveis sem necessidade.
+Componentes interativos, como menu mobile, controle de tema, navegação por seção e ações de contato, são Client Components isolados. Dados estáticos não dependem de hooks nem são enviados ao navegador como módulos executáveis sem necessidade.
 
 ## Estilos e temas
 
 Os tokens globais definem cores, tipografia, espaçamento, raios, sombras e estados de foco. Os temas claro e escuro usam os mesmos tokens sem manter superfícies escuras no tema claro.
+
+O tema do sistema operacional define a preferência inicial. Um único botão alterna entre Claro e Escuro, e a escolha manual é persistida para as próximas visitas.
 
 Os estilos específicos ficam próximos dos componentes em CSS Modules. Animações respeitam `prefers-reduced-motion`, e efeitos de ponteiro devem ser limitados a dispositivos que suportam hover preciso.
 

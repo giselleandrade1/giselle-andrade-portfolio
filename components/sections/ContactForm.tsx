@@ -3,15 +3,17 @@
 import { useId, useState, type ChangeEvent, type FocusEvent, type FormEvent } from "react";
 
 import { Icon } from "@/components/ui/Icon";
+import type { Messages } from "@/i18n";
 
 import styles from "./contact-form.module.css";
 
 type ContactFormProps = {
   email: string;
+  messages: Messages["contact"]["form"];
 };
 
 type FieldName = "name" | "email" | "subject" | "message";
-type FieldErrors = Partial<Record<FieldName, string>>;
+type FieldErrors = Partial<Record<FieldName, FieldName>>;
 type FormStatus = "idle" | "invalid" | "opened";
 
 const fieldNames: readonly FieldName[] = ["name", "email", "subject", "message"];
@@ -20,22 +22,22 @@ function isFieldName(value: string): value is FieldName {
   return fieldNames.some((fieldName) => fieldName === value);
 }
 
-function validateField(field: FieldName, value: string): string {
+function validateField(field: FieldName, value: string): FieldName | undefined {
   const trimmedValue = value.trim();
 
-  if (field === "name" && trimmedValue.length < 2) return "Enter your name.";
+  if (field === "name" && trimmedValue.length < 2) return field;
   if (field === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedValue)) {
-    return "Enter a valid email address.";
+    return field;
   }
-  if (field === "subject" && trimmedValue.length < 3) return "Add a short subject.";
+  if (field === "subject" && trimmedValue.length < 3) return field;
   if (field === "message" && trimmedValue.length < 12) {
-    return "Write at least 12 characters so there is enough context.";
+    return field;
   }
 
-  return "";
+  return undefined;
 }
 
-export function ContactForm({ email }: ContactFormProps) {
+export function ContactForm({ email, messages }: ContactFormProps) {
   const idPrefix = useId();
   const [errors, setErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState<FormStatus>("idle");
@@ -44,8 +46,8 @@ export function ContactForm({ email }: ContactFormProps) {
     const field = event.currentTarget.name;
     if (!isFieldName(field)) return;
 
-    const error = validateField(field, event.currentTarget.value);
-    setErrors((current) => ({ ...current, [field]: error || undefined }));
+    const errorCode = validateField(field, event.currentTarget.value);
+    setErrors((current) => ({ ...current, [field]: errorCode }));
   }
 
   function handleChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
@@ -88,15 +90,15 @@ export function ContactForm({ email }: ContactFormProps) {
 
     setErrors({});
     setStatus("opened");
-    const body = `Name: ${values.name}\nEmail: ${values.email}\n\n${values.message}`;
+    const body = `${messages.mailBodyName}: ${values.name}\n${messages.mailBodyEmail}: ${values.email}\n\n${values.message}`;
     window.location.href = `mailto:${email}?subject=${encodeURIComponent(values.subject)}&body=${encodeURIComponent(body)}`;
   }
 
   const statusMessage =
     status === "invalid"
-      ? "Please review the highlighted fields."
+      ? messages.invalidStatus
       : status === "opened"
-        ? "Your email application has been opened. Review the message and send it when ready."
+        ? messages.openedStatus
         : "";
 
   const errorId = (field: FieldName) => `${idPrefix}-${field}-error`;
@@ -104,17 +106,15 @@ export function ContactForm({ email }: ContactFormProps) {
   return (
     <div className={styles.formPanel} data-contact-form-layout data-reveal>
       <div className={styles.formIntro}>
-        <p>Prefer to write first?</p>
-        <h3>Start the message here.</h3>
-        <span>
-          This form prepares an email on your device. It does not claim to send anything through a server.
-        </span>
+        <p>{messages.eyebrow}</p>
+        <h3>{messages.title}</h3>
+        <span>{messages.description}</span>
       </div>
 
-      <form aria-label="Email contact form" className={styles.form} noValidate onSubmit={handleSubmit}>
+      <form aria-label={messages.ariaLabel} className={styles.form} noValidate onSubmit={handleSubmit}>
         <div className={styles.fieldGrid}>
           <div className={styles.field}>
-            <label htmlFor={`${idPrefix}-name`}>Name</label>
+            <label htmlFor={`${idPrefix}-name`}>{messages.fields.name.label}</label>
             <input
               aria-describedby={errors.name ? errorId("name") : undefined}
               aria-invalid={Boolean(errors.name)}
@@ -123,15 +123,17 @@ export function ContactForm({ email }: ContactFormProps) {
               name="name"
               onBlur={handleBlur}
               onChange={handleChange}
-              placeholder="Your name"
+              placeholder={messages.fields.name.placeholder}
               required
               type="text"
             />
-            <span className={styles.fieldError} id={errorId("name")}>{errors.name}</span>
+            <span className={styles.fieldError} id={errorId("name")}>
+              {errors.name ? messages.errors[errors.name] : ""}
+            </span>
           </div>
 
           <div className={styles.field}>
-            <label htmlFor={`${idPrefix}-email`}>Email</label>
+            <label htmlFor={`${idPrefix}-email`}>{messages.fields.email.label}</label>
             <input
               aria-describedby={errors.email ? errorId("email") : undefined}
               aria-invalid={Boolean(errors.email)}
@@ -141,16 +143,18 @@ export function ContactForm({ email }: ContactFormProps) {
               name="email"
               onBlur={handleBlur}
               onChange={handleChange}
-              placeholder="you@example.com"
+              placeholder={messages.fields.email.placeholder}
               required
               type="email"
             />
-            <span className={styles.fieldError} id={errorId("email")}>{errors.email}</span>
+            <span className={styles.fieldError} id={errorId("email")}>
+              {errors.email ? messages.errors[errors.email] : ""}
+            </span>
           </div>
         </div>
 
         <div className={styles.field}>
-          <label htmlFor={`${idPrefix}-subject`}>Subject</label>
+          <label htmlFor={`${idPrefix}-subject`}>{messages.fields.subject.label}</label>
           <input
             aria-describedby={errors.subject ? errorId("subject") : undefined}
             aria-invalid={Boolean(errors.subject)}
@@ -158,15 +162,17 @@ export function ContactForm({ email }: ContactFormProps) {
             name="subject"
             onBlur={handleBlur}
             onChange={handleChange}
-            placeholder="Project, role, or collaboration"
+            placeholder={messages.fields.subject.placeholder}
             required
             type="text"
           />
-          <span className={styles.fieldError} id={errorId("subject")}>{errors.subject}</span>
+          <span className={styles.fieldError} id={errorId("subject")}>
+            {errors.subject ? messages.errors[errors.subject] : ""}
+          </span>
         </div>
 
         <div className={styles.field}>
-          <label htmlFor={`${idPrefix}-message`}>Message</label>
+          <label htmlFor={`${idPrefix}-message`}>{messages.fields.message.label}</label>
           <textarea
             aria-describedby={errors.message ? errorId("message") : undefined}
             aria-invalid={Boolean(errors.message)}
@@ -175,16 +181,18 @@ export function ContactForm({ email }: ContactFormProps) {
             name="message"
             onBlur={handleBlur}
             onChange={handleChange}
-            placeholder="Tell me a little about what you are building."
+            placeholder={messages.fields.message.placeholder}
             required
             rows={6}
           />
-          <span className={styles.fieldError} id={errorId("message")}>{errors.message}</span>
+          <span className={styles.fieldError} id={errorId("message")}>
+            {errors.message ? messages.errors[errors.message] : ""}
+          </span>
         </div>
 
         <div className={styles.formFooter}>
           <button className={styles.submitButton} type="submit">
-            Open email application
+            {messages.submit}
             <Icon name="mail" size="md" />
           </button>
           <p aria-atomic="true" aria-live="polite" className={styles.formStatus} role="status">

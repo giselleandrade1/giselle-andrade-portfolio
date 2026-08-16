@@ -1,5 +1,6 @@
 .formPanel {
   position: relative;
+  container-type: inline-size;
   display: grid;
   gap: var(--cluster-gap);
   min-width: 0;
@@ -51,7 +52,12 @@
   margin-top: var(--space-4);
   color: var(--text-muted);
   font-size: var(--text-sm);
+  hyphens: auto;
   line-height: 1.65;
+  overflow-wrap: break-word;
+  text-align: justify;
+  text-align-last: left;
+  word-break: normal;
 }
 
 .form,
@@ -86,7 +92,7 @@
   padding: var(--space-3) var(--space-4);
   color: var(--text-primary);
   background: var(--surface-2);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-sm);
   line-height: 1.45;
   transition:
@@ -107,7 +113,7 @@
 .field input::placeholder,
 .field textarea::placeholder {
   color: var(--text-muted);
-  opacity: 0.82;
+  opacity: 1;
 }
 
 .field input:hover,
@@ -155,7 +161,6 @@
   font-weight: 750;
   transition:
     box-shadow var(--transition-fast),
-    filter var(--transition-fast),
     transform var(--transition-fast);
 }
 
@@ -169,7 +174,6 @@
 @media (hover: hover) and (pointer: fine) {
   .submitButton:hover {
     box-shadow: 0 1rem 2.75rem var(--glow);
-    filter: brightness(1.08);
     transform: translateY(-2px);
   }
 }
@@ -192,6 +196,13 @@
   .formPanel {
     grid-template-columns: minmax(16rem, 0.65fr) minmax(0, 1.35fr);
     align-items: start;
+  }
+}
+
+@container (max-width: 22rem) {
+  .formIntro span {
+    text-align: left;
+    text-align-last: auto;
   }
 }
 

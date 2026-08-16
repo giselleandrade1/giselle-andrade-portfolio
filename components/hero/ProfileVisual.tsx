@@ -4,17 +4,17 @@ import { profile } from "@/data/profile";
 
 import styles from "./hero.module.css";
 
-export function ProfileVisual() {
+export function ProfileVisual({ portraitAlt }: Readonly<{ portraitAlt: string }>) {
   return (
     <div className={styles.visual}>
       <div className={styles.gridPanel} aria-hidden="true" />
       <div className={styles.portraitFrame} data-portrait>
         <Image
           src={profile.avatar}
-          alt={profile.avatarAlt}
+          alt={portraitAlt}
           fill
           priority
-          sizes="(max-width: 479px) 76vw, (max-width: 991px) 400px, (max-width: 1279px) 380px, (max-width: 1599px) 30vw, 464px"
+          sizes="(max-width: 479px) 72vw, (max-width: 991px) 390px, (max-width: 1279px) 380px, (max-width: 1599px) 30vw, 416px"
         />
       </div>
 

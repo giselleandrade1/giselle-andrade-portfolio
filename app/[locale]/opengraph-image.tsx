@@ -1,13 +1,22 @@
 import { ImageResponse } from "next/og";
+import { notFound } from "next/navigation";
 
-export const alt = "Giselle Andrade — Full Stack Developer portfolio";
+import { getMessages, isLocale } from "@/i18n";
+
+export const alt = "Giselle Andrade portfolio";
 export const size = {
   width: 1200,
   height: 630,
 };
 export const contentType = "image/png";
 
-export default function OpenGraphImage() {
+export default async function OpenGraphImage({
+  params,
+}: Readonly<{ params: Promise<{ locale: string }> }>) {
+  const { locale: localeParam } = await params;
+  if (!isLocale(localeParam)) notFound();
+  const messages = await getMessages(localeParam);
+
   return new ImageResponse(
     (
       <div
@@ -54,8 +63,8 @@ export default function OpenGraphImage() {
           <div style={{ fontSize: 78, fontWeight: 750, letterSpacing: "-5px", lineHeight: 0.92 }}>
             Giselle Andrade
           </div>
-          <div style={{ maxWidth: "870px", color: "#b8c4d6", fontSize: 35, lineHeight: 1.2 }}>
-            Full Stack Developer building reliable software and thoughtful digital experiences.
+          <div style={{ maxWidth: "900px", color: "#b8c4d6", fontSize: 35, lineHeight: 1.2 }}>
+            {messages.hero.headlineLead} {messages.hero.headlineAccent} {messages.hero.headlineTail}
           </div>
         </div>
         <div style={{ display: "flex", gap: "18px", color: "#64d8ff", fontSize: 21 }}>

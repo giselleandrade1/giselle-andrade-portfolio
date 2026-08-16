@@ -1,9 +1,58 @@
-import { writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 
-const baseUrl = process.env.BASE_URL ?? "http://127.0.0.1:3000";
+const requestedBaseUrl = process.env.BASE_URL ?? "http://127.0.0.1:3000";
+const siteOrigin = new URL(requestedBaseUrl).origin;
+const locales = ["en-US", "pt-BR", "es-ES"];
+const defaultLocale = "en-US";
+const localizedUrl = (locale = defaultLocale, hash = "") => `${siteOrigin}/${locale}${hash}`;
+const baseUrl = localizedUrl();
 const debugUrl = process.env.CHROME_DEBUG_URL ?? "http://127.0.0.1:9223";
 const screenshotPath = process.env.SCREENSHOT_PATH;
+const screenshotDirectory = process.env.SCREENSHOT_DIR;
 const screenshotOffset = Number(process.env.SCREENSHOT_OFFSET ?? 0);
+const sectionScreenshotDirectory = process.env.SECTION_SCREENSHOT_DIR;
+const sectionScreenshotWidth = Number(process.env.SECTION_SCREENSHOT_WIDTH ?? 1440);
+const sectionScreenshotHeight = Number(process.env.SECTION_SCREENSHOT_HEIGHT ?? 900);
+const sectionScreenshotTheme = process.env.SECTION_SCREENSHOT_THEME;
+const sectionScreenshotLocale = locales.includes(process.env.SECTION_SCREENSHOT_LOCALE)
+  ? process.env.SECTION_SCREENSHOT_LOCALE
+  : defaultLocale;
+
+const localeExpectations = {
+  "en-US": {
+    greeting: "Hello, I'm",
+    home: "Home",
+    resume: "Resume",
+    formLabel: "Email contact form",
+    closeMenu: "Close navigation menu",
+    themeToDark: "Switch to dark theme",
+    themeToLight: "Switch to light theme",
+    flag: "/icons/flags/us.svg",
+    title: "Giselle Andrade | Full Stack Developer",
+  },
+  "pt-BR": {
+    greeting: "Olá, eu sou",
+    home: "Início",
+    resume: "Currículo",
+    formLabel: "Formulário de contato por e-mail",
+    closeMenu: "Fechar menu de navegação",
+    themeToDark: "Mudar para o tema escuro",
+    themeToLight: "Mudar para o tema claro",
+    flag: "/icons/flags/br.svg",
+    title: "Giselle Andrade | Desenvolvedora Full Stack",
+  },
+  "es-ES": {
+    greeting: "Hola, soy",
+    home: "Inicio",
+    resume: "Currículum",
+    formLabel: "Formulario de contacto por correo electrónico",
+    closeMenu: "Cerrar menú de navegación",
+    themeToDark: "Cambiar al tema oscuro",
+    themeToLight: "Cambiar al tema claro",
+    flag: "/icons/flags/es.svg",
+    title: "Giselle Andrade | Desarrolladora Full Stack",
+  },
+};
 
 const viewports = [
   [320, 568],
@@ -93,11 +142,19 @@ async function main() {
   client.on("Runtime.exceptionThrown", (event) => {
     consoleErrors.push(event.exceptionDetails?.exception?.description ?? event.exceptionDetails?.text);
   });
+  client.on("Runtime.consoleAPICalled", (event) => {
+    if (event.type !== "error") return;
+    consoleErrors.push(
+      event.args
+        .map((argument) => argument.value ?? argument.description ?? "Unknown console error")
+        .join(" "),
+    );
+  });
   client.on("Log.entryAdded", (event) => {
     if (event.entry.level === "error") consoleErrors.push(event.entry.text);
   });
   client.on("Network.responseReceived", (event) => {
-    if (event.response.status >= 400 && event.response.url.startsWith(baseUrl)) {
+    if (event.response.status >= 400 && event.response.url.startsWith(siteOrigin)) {
       networkErrors.push(`${event.response.status} ${event.response.url}`);
     }
   });
@@ -135,16 +192,55 @@ async function main() {
     return result.result.value;
   }
 
+  const ssrLocales = [];
+  for (const locale of locales) {
+    const response = await fetch(localizedUrl(locale), {
+      headers: { cookie: `locale=${locale}` },
+    });
+    const html = await response.text();
+    const redirectResponse = await fetch(siteOrigin, {
+      headers: { cookie: `locale=${locale}` },
+      redirect: "manual",
+    });
+    const redirectLocation = redirectResponse.headers.get("location");
+    const audit = {
+      locale,
+      status: response.status,
+      hasLang: html.includes(`lang="${locale}"`),
+      hasTitle: html.includes(localeExpectations[locale].title),
+      alternateCount: (html.match(/hreflang=/gi) ?? []).length,
+      redirectStatus: redirectResponse.status,
+      redirectLocation,
+    };
+    ssrLocales.push(audit);
+
+    if (
+      audit.status !== 200 ||
+      !audit.hasLang ||
+      !audit.hasTitle ||
+      audit.alternateCount < 4 ||
+      ![307, 308].includes(audit.redirectStatus) ||
+      !redirectLocation?.endsWith(`/${locale}`)
+    ) {
+      throw new Error(`Localized SSR or preference redirect failed: ${JSON.stringify(audit)}`);
+    }
+  }
+
   const results = [];
 
-  for (const [width, height] of viewports) {
-    await client.send("Emulation.setDeviceMetricsOverride", {
-      width,
-      height,
-      deviceScaleFactor: 1,
-      mobile: width < 768,
-    });
-    await navigate();
+  if (screenshotDirectory) await mkdir(screenshotDirectory, { recursive: true });
+
+  for (const locale of locales) {
+    const expectation = localeExpectations[locale];
+
+    for (const [width, height] of viewports) {
+      await client.send("Emulation.setDeviceMetricsOverride", {
+        width,
+        height,
+        deviceScaleFactor: 1,
+        mobile: width < 768,
+      });
+      await navigate(localizedUrl(locale));
 
     const audit = await evaluate(`(() => {
       const visible = (element) => {
@@ -178,9 +274,46 @@ async function main() {
         .filter((button) => visible(button))
         .map((button) => {
           const rect = button.getBoundingClientRect();
-          return { label: button.getAttribute("aria-label") || button.textContent.trim(), width: rect.width, height: rect.height };
+          return {
+            isCompactHeaderControl: button.matches("[data-theme-toggle], [data-language-toggle]"),
+            label: button.getAttribute("aria-label") || button.textContent.trim(),
+            width: rect.width,
+            height: rect.height,
+          };
         })
-        .filter((button) => button.width < 44 || button.height < 44);
+        .filter((button) => {
+          const minimum = button.isCompactHeaderControl && innerWidth >= 992 ? 36 : 44;
+          return button.width < minimum || button.height < minimum;
+        });
+      const heroCopy = document.querySelector("[data-hero-copy]");
+      const heroVisual = document.querySelector("[data-hero-visual]");
+      const heroHeadline = heroCopy?.querySelector("p:last-child");
+      const portrait = document.querySelector("[data-portrait]");
+      const headlineRect = heroHeadline?.getBoundingClientRect();
+      const visualRect = heroVisual?.getBoundingClientRect();
+      const portraitRect = portrait?.getBoundingClientRect();
+      const mobileHero = {
+        domOrder: heroCopy?.nextElementSibling === heroVisual,
+        headlineToVisualGap: headlineRect && visualRect
+          ? Math.round(visualRect.top - headlineRect.bottom)
+          : null,
+        portraitWidth: portraitRect ? Math.round(portraitRect.width) : null,
+      };
+      const typeScale = {
+        hero: Number.parseFloat(getComputedStyle(document.querySelector("h1")).fontSize),
+        section: Number.parseFloat(getComputedStyle(document.querySelector("#about h2")).fontSize),
+        contact: Number.parseFloat(getComputedStyle(document.querySelector("#contact h2")).fontSize),
+      };
+      const themeButton = document.querySelector("[data-theme-toggle]");
+      const languageButton = document.querySelector("[data-language-toggle]");
+      const headerActions = themeButton?.parentElement;
+      const actionChildren = headerActions ? [...headerActions.children] : [];
+      const languageRoot = languageButton?.parentElement;
+      const resume = headerActions?.querySelector("a[download]");
+      const menu = headerActions?.querySelector('[aria-controls="mobile-navigation"]');
+      const prose = document.querySelector("#about h2")?.parentElement?.querySelector("p");
+      const proseStyle = prose ? getComputedStyle(prose) : null;
+      const languageFlag = languageButton?.querySelector("img");
       return {
         innerWidth,
         scrollWidth: document.documentElement.scrollWidth,
@@ -192,20 +325,159 @@ async function main() {
         unsafeExternalLinks,
         brokenImages,
         smallButtons,
+        mobileHero,
+        typeScale,
+        localeCopy: {
+          greeting: document.querySelector("[data-hero-copy] > p")?.textContent?.trim(),
+          home: document.querySelector('nav a[href="#home"]')?.textContent?.trim(),
+          resume: resume?.textContent?.trim(),
+          formLabel: document.querySelector("form")?.getAttribute("aria-label"),
+          flagPath: languageFlag ? new URL(languageFlag.src).pathname : null,
+        },
+        languageButtonCount: document.querySelectorAll("[data-language-toggle]").length,
+        headerOrder: {
+          theme: actionChildren.indexOf(themeButton),
+          language: actionChildren.indexOf(languageRoot),
+          resume: actionChildren.indexOf(resume),
+          menu: actionChildren.indexOf(menu),
+          resumeVisible: resume ? visible(resume) : false,
+          menuVisible: menu ? visible(menu) : false,
+        },
+        prose: {
+          textAlign: proseStyle?.textAlign,
+          textAlignLast: proseStyle?.textAlignLast,
+          hyphens: proseStyle?.hyphens,
+          overflowWrap: proseStyle?.overflowWrap,
+          wordBreak: proseStyle?.wordBreak,
+        },
       };
     })()`);
 
     const failures = [];
     if (audit.scrollWidth > audit.innerWidth) failures.push(`scrollWidth ${audit.scrollWidth} > ${audit.innerWidth}`);
     if (audit.overflow.length) failures.push(`overflowing elements: ${JSON.stringify(audit.overflow)}`);
-    if (audit.lang !== "en") failures.push(`lang is ${audit.lang}`);
+    if (audit.lang !== locale) failures.push(`lang is ${audit.lang}, expected ${locale}`);
     if (audit.h1Count !== 1) failures.push(`expected one h1, found ${audit.h1Count}`);
     if (!audit.hasMain) failures.push("main landmark missing");
     if (audit.headingJumps) failures.push(`${audit.headingJumps} heading-level jumps`);
     if (audit.unsafeExternalLinks) failures.push(`${audit.unsafeExternalLinks} unsafe external links`);
     if (audit.brokenImages.length) failures.push(`broken images: ${audit.brokenImages.join(", ")}`);
     if (audit.smallButtons.length) failures.push(`small buttons: ${JSON.stringify(audit.smallButtons)}`);
-    results.push({ width, height, failures });
+    if (audit.typeScale.hero > 104.5) failures.push(`hero heading is ${audit.typeScale.hero}px`);
+    if (audit.typeScale.section > 60.5) failures.push(`section heading is ${audit.typeScale.section}px`);
+    if (audit.typeScale.contact > 84.5) failures.push(`contact heading is ${audit.typeScale.contact}px`);
+    if (audit.languageButtonCount !== 1) failures.push(`expected one language button, found ${audit.languageButtonCount}`);
+    if (audit.localeCopy.greeting !== expectation.greeting) failures.push(`greeting is ${audit.localeCopy.greeting}`);
+    if (audit.localeCopy.home !== expectation.home) failures.push(`home label is ${audit.localeCopy.home}`);
+    if (audit.localeCopy.formLabel !== expectation.formLabel) failures.push(`form label is ${audit.localeCopy.formLabel}`);
+    if (audit.localeCopy.flagPath !== expectation.flag) failures.push(`flag is ${audit.localeCopy.flagPath}`);
+    if (
+      audit.prose.textAlign !== "justify" ||
+      audit.prose.textAlignLast !== "left" ||
+      audit.prose.hyphens !== "auto" ||
+      audit.prose.overflowWrap !== "break-word" ||
+      audit.prose.wordBreak !== "normal"
+    ) {
+      failures.push(`prose alignment is ${JSON.stringify(audit.prose)}`);
+    }
+    if (width >= 1180) {
+      if (
+        !(audit.headerOrder.theme < audit.headerOrder.language && audit.headerOrder.language < audit.headerOrder.resume) ||
+        !audit.headerOrder.resumeVisible ||
+        audit.headerOrder.menuVisible ||
+        audit.localeCopy.resume !== expectation.resume
+      ) {
+        failures.push(`desktop header order is ${JSON.stringify(audit.headerOrder)}`);
+      }
+    } else if (
+      !(audit.headerOrder.theme < audit.headerOrder.language && audit.headerOrder.language < audit.headerOrder.menu) ||
+      audit.headerOrder.resumeVisible ||
+      !audit.headerOrder.menuVisible
+    ) {
+      failures.push(`mobile header order is ${JSON.stringify(audit.headerOrder)}`);
+    }
+    if (width <= 768) {
+      const portraitRanges = {
+        320: [220, 250],
+        375: [240, 280],
+        480: [280, 330],
+        768: [320, 390],
+      };
+      const [minimumPortrait, maximumPortrait] = portraitRanges[width];
+      if (!audit.mobileHero.domOrder) failures.push("hero visual is not immediately after the headline group in the DOM");
+      if (
+        audit.mobileHero.headlineToVisualGap === null ||
+        audit.mobileHero.headlineToVisualGap < 0 ||
+        audit.mobileHero.headlineToVisualGap > 56
+      ) {
+        failures.push(`headline-to-photo gap is ${audit.mobileHero.headlineToVisualGap}px`);
+      }
+      if (
+        audit.mobileHero.portraitWidth === null ||
+        audit.mobileHero.portraitWidth < minimumPortrait ||
+        audit.mobileHero.portraitWidth > maximumPortrait
+      ) {
+        failures.push(`portrait width is ${audit.mobileHero.portraitWidth}px`);
+      }
+    }
+    results.push({ locale, width, height, failures });
+
+    if (screenshotDirectory) {
+      await pause(700);
+      const screenshot = await client.send("Page.captureScreenshot", {
+        format: "png",
+        captureBeyondViewport: false,
+      });
+      await writeFile(
+        `${screenshotDirectory}/${locale}-${width}x${height}.png`,
+        Buffer.from(screenshot.data, "base64"),
+      );
+      }
+    }
+  }
+
+  if (sectionScreenshotDirectory) {
+    await mkdir(sectionScreenshotDirectory, { recursive: true });
+    await client.send("Emulation.setDeviceMetricsOverride", {
+      width: sectionScreenshotWidth,
+      height: sectionScreenshotHeight,
+      deviceScaleFactor: 1,
+      mobile: sectionScreenshotWidth < 768,
+    });
+    await navigate(localizedUrl(sectionScreenshotLocale));
+
+    if (sectionScreenshotTheme === "dark" || sectionScreenshotTheme === "light") {
+      await evaluate(`(() => {
+        const desiredTheme = ${JSON.stringify(sectionScreenshotTheme)};
+        if (document.documentElement.dataset.theme !== desiredTheme) {
+          document.querySelector("button[data-theme-toggle]").click();
+        }
+      })()`);
+      await pause(300);
+    }
+
+    const sectionIds = await evaluate(`[
+      ...document.querySelectorAll("main > section[id]")
+    ].map((section) => section.id)`);
+
+    for (const sectionId of sectionIds) {
+      await evaluate(`(() => {
+        document.documentElement.style.scrollBehavior = "auto";
+        document.getElementById(${JSON.stringify(sectionId)}).scrollIntoView({
+          behavior: "instant",
+          block: "start",
+        });
+      })()`);
+      await pause(700);
+      const screenshot = await client.send("Page.captureScreenshot", {
+        format: "png",
+        captureBeyondViewport: false,
+      });
+      await writeFile(
+        `${sectionScreenshotDirectory}/${sectionScreenshotLocale}-${sectionId}.png`,
+        Buffer.from(screenshot.data, "base64"),
+      );
+    }
   }
 
   await client.send("Emulation.setDeviceMetricsOverride", {
@@ -215,34 +487,24 @@ async function main() {
     mobile: true,
   });
   await navigate();
+  await pause(500);
 
   await evaluate(`document.querySelector('[aria-controls="mobile-navigation"]').focus()`);
-  await client.send("Input.dispatchKeyEvent", {
-    type: "keyDown",
-    key: "Enter",
-    code: "Enter",
-    nativeVirtualKeyCode: 13,
-    text: "\r",
-    unmodifiedText: "\r",
-    windowsVirtualKeyCode: 13,
-  });
-  await client.send("Input.dispatchKeyEvent", {
-    type: "keyUp",
-    key: "Enter",
-    code: "Enter",
-    windowsVirtualKeyCode: 13,
-  });
+  await evaluate(`document.activeElement.click()`);
   await pause(350);
   const openMenu = await evaluate(`(() => ({
     expanded: document.querySelector('[aria-controls="mobile-navigation"]').getAttribute("aria-expanded"),
     bodyLocked: document.body.dataset.menuOpen,
     dialogVisible: getComputedStyle(document.querySelector('[role="dialog"]')).visibility !== "hidden",
     focusedLabel: document.activeElement?.getAttribute("aria-label"),
+    backgroundInert: [document.querySelector("[data-header-bar]"), document.querySelector("main"), document.querySelector("footer")]
+      .every((region) => region?.inert),
   }))()`);
   if (
     openMenu.expanded !== "true" ||
     openMenu.bodyLocked !== "true" ||
     !openMenu.dialogVisible ||
+    !openMenu.backgroundInert ||
     openMenu.focusedLabel !== "Close navigation menu"
   ) {
     throw new Error(`Mobile menu did not open accessibly: ${JSON.stringify(openMenu)}`);
@@ -260,16 +522,127 @@ async function main() {
     throw new Error(`Mobile menu did not close accessibly: ${JSON.stringify(closedMenu)}`);
   }
 
-  const themeBefore = await evaluate(`(() => {
-    const button = document.querySelector('button[title*="theme"]');
-    const rootStyle = getComputedStyle(document.documentElement);
-    button.focus();
-    return {
-      theme: document.documentElement.dataset.theme,
-      background: rootStyle.getPropertyValue("--background").trim(),
-      surface: rootStyle.getPropertyValue("--surface-glass").trim(),
-    };
-  })()`);
+  await evaluate(`document.querySelector(".skipLink").focus()`);
+  await client.send("Input.dispatchKeyEvent", {
+    type: "keyDown",
+    key: "Enter",
+    code: "Enter",
+    nativeVirtualKeyCode: 13,
+    text: "\r",
+    unmodifiedText: "\r",
+    windowsVirtualKeyCode: 13,
+  });
+  await client.send("Input.dispatchKeyEvent", {
+    type: "keyUp",
+    key: "Enter",
+    code: "Enter",
+    windowsVirtualKeyCode: 13,
+  });
+  await pause(100);
+  const skipLink = await evaluate(`(() => ({
+    hash: location.hash,
+    activeId: document.activeElement?.id,
+  }))()`);
+  if (skipLink.hash !== "#main-content" || skipLink.activeId !== "main-content") {
+    throw new Error(`Skip link did not move focus to main content: ${JSON.stringify(skipLink)}`);
+  }
+
+  await evaluate(`localStorage.removeItem("theme")`);
+  await client.send("Emulation.setEmulatedMedia", {
+    features: [{ name: "prefers-color-scheme", value: "light" }],
+  });
+  await navigate();
+
+  async function readThemeState() {
+    return evaluate(`(() => {
+      const rootStyle = getComputedStyle(document.documentElement);
+      const buttons = [...document.querySelectorAll("button[data-theme-toggle]")];
+      const button = buttons[0];
+      const icons = button ? [...button.querySelectorAll("svg")].map((icon) => icon.parentElement) : [];
+      const rect = button?.getBoundingClientRect();
+      return {
+        theme: document.documentElement.dataset.theme,
+        resolved: document.documentElement.dataset.resolvedTheme,
+        device: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
+        colorScheme: document.documentElement.style.colorScheme,
+        stored: localStorage.getItem("theme"),
+        buttonCount: buttons.length,
+        legacyOptionCount: document.querySelectorAll('[data-theme-selector], input[name="theme-preference"]').length,
+        tagName: button?.tagName,
+        label: button?.getAttribute("aria-label"),
+        title: button?.getAttribute("title"),
+        targetWidth: rect?.width ?? 0,
+        targetHeight: rect?.height ?? 0,
+        sunOpacity: icons[0] ? Number.parseFloat(getComputedStyle(icons[0]).opacity) : null,
+        moonOpacity: icons[1] ? Number.parseFloat(getComputedStyle(icons[1]).opacity) : null,
+        background: rootStyle.getPropertyValue("--background").trim(),
+        surface: rootStyle.getPropertyValue("--surface-glass").trim(),
+        themeColors: [...document.querySelectorAll('meta[name="theme-color"]')]
+          .map((meta) => meta.getAttribute("content")),
+      };
+    })()`);
+  }
+
+  async function waitForThemeState(expected, label) {
+    let state;
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+      state = await readThemeState();
+      if (Object.entries(expected).every(([key, value]) => state[key] === value)) {
+        await pause(400);
+        return readThemeState();
+      }
+      await pause(50);
+    }
+    throw new Error(`${label}: ${JSON.stringify(state)}`);
+  }
+
+  await pause(300);
+  const initialSystemLight = await readThemeState();
+  if (
+    initialSystemLight.theme !== "light" ||
+    initialSystemLight.resolved !== "light" ||
+    initialSystemLight.device !== "light" ||
+    initialSystemLight.colorScheme !== "light" ||
+    initialSystemLight.stored !== null ||
+    initialSystemLight.buttonCount !== 1 ||
+    initialSystemLight.legacyOptionCount !== 0 ||
+    initialSystemLight.tagName !== "BUTTON" ||
+    initialSystemLight.label !== "Switch to dark theme" ||
+    initialSystemLight.title !== initialSystemLight.label ||
+    initialSystemLight.targetWidth < 44 ||
+    initialSystemLight.targetHeight < 44 ||
+    initialSystemLight.sunOpacity > 0.01 ||
+    initialSystemLight.moonOpacity < 0.99 ||
+    initialSystemLight.background !== "#f6f8fc" ||
+    initialSystemLight.surface === "#050c18d6" ||
+    initialSystemLight.themeColors.length === 0 ||
+    initialSystemLight.themeColors.some((color) => color !== "#f6f8fc")
+  ) {
+    throw new Error(`Initial system light theme failed: ${JSON.stringify(initialSystemLight)}`);
+  }
+
+  await client.send("Emulation.setEmulatedMedia", {
+    features: [{ name: "prefers-color-scheme", value: "dark" }],
+  });
+  const initialSystemDark = await waitForThemeState(
+    { theme: "dark", resolved: "dark", device: "dark", colorScheme: "dark", stored: null },
+    "Theme did not follow the device before a manual choice",
+  );
+  if (
+    initialSystemDark.label !== "Switch to light theme" ||
+    initialSystemDark.title !== initialSystemDark.label ||
+    initialSystemDark.buttonCount !== 1 ||
+    initialSystemDark.sunOpacity < 0.99 ||
+    initialSystemDark.moonOpacity > 0.01 ||
+    initialSystemDark.background !== "#030711" ||
+    initialSystemDark.surface === initialSystemLight.surface ||
+    initialSystemDark.themeColors.length === 0 ||
+    initialSystemDark.themeColors.some((color) => color !== "#030711")
+  ) {
+    throw new Error(`Initial system dark theme failed: ${JSON.stringify(initialSystemDark)}`);
+  }
+
+  await evaluate(`document.querySelector("button[data-theme-toggle]").focus()`);
   await client.send("Input.dispatchKeyEvent", {
     type: "keyDown",
     key: " ",
@@ -285,25 +658,171 @@ async function main() {
     code: "Space",
     windowsVirtualKeyCode: 32,
   });
-  await pause(100);
-  const themeAfter = await evaluate(`(() => {
-    const rootStyle = getComputedStyle(document.documentElement);
-    return {
-      theme: document.documentElement.dataset.theme,
-      stored: localStorage.getItem("theme"),
-      background: rootStyle.getPropertyValue("--background").trim(),
-      surface: rootStyle.getPropertyValue("--surface-glass").trim(),
-    };
-  })()`);
-  const themes = { before: themeBefore, after: themeAfter };
+  const explicitLight = await waitForThemeState(
+    { theme: "light", resolved: "light", device: "dark", stored: "light" },
+    "Explicit light theme did not apply",
+  );
   if (
-    themeBefore.theme === themeAfter.theme ||
-    themeAfter.theme !== themeAfter.stored ||
-    themeBefore.background === themeAfter.background ||
-    themeBefore.surface === themeAfter.surface
+    explicitLight.colorScheme !== "light" ||
+    explicitLight.background !== "#f6f8fc" ||
+    explicitLight.label !== "Switch to dark theme" ||
+    explicitLight.title !== explicitLight.label ||
+    explicitLight.sunOpacity > 0.01 ||
+    explicitLight.moonOpacity < 0.99 ||
+    explicitLight.themeColors.length === 0 ||
+    explicitLight.themeColors.some((color) => color !== "#f6f8fc")
   ) {
-    throw new Error(`Theme toggle did not persist: ${JSON.stringify(themes)}`);
+    throw new Error(`Explicit light theme failed: ${JSON.stringify(explicitLight)}`);
   }
+
+  await client.send("Emulation.setEmulatedMedia", {
+    features: [{ name: "prefers-color-scheme", value: "light" }],
+  });
+  const lightOverrideOnLightSystem = await waitForThemeState(
+    { theme: "light", resolved: "light", device: "light", stored: "light" },
+    "Light override was lost when the device changed to light",
+  );
+  await client.send("Emulation.setEmulatedMedia", {
+    features: [{ name: "prefers-color-scheme", value: "dark" }],
+  });
+  const lightOverrideOnDarkSystem = await waitForThemeState(
+    { theme: "light", resolved: "light", device: "dark", stored: "light" },
+    "Light override was lost when the device changed to dark",
+  );
+
+  await navigate();
+  const persistedLight = await waitForThemeState(
+    {
+      theme: "light",
+      resolved: "light",
+      device: "dark",
+      stored: "light",
+      label: "Switch to dark theme",
+    },
+    "Persisted light state did not settle",
+  );
+  if (
+    persistedLight.theme !== "light" ||
+    persistedLight.resolved !== "light" ||
+    persistedLight.device !== "dark" ||
+    persistedLight.stored !== "light" ||
+    persistedLight.label !== "Switch to dark theme" ||
+    persistedLight.buttonCount !== 1
+  ) {
+    throw new Error(`Explicit theme did not persist after navigation: ${JSON.stringify(persistedLight)}`);
+  }
+
+  await client.send("Emulation.setEmulatedMedia", {
+    features: [{ name: "prefers-color-scheme", value: "light" }],
+  });
+  await waitForThemeState(
+    { theme: "light", resolved: "light", device: "light", stored: "light" },
+    "Persisted light override was lost when the device changed",
+  );
+  await evaluate(`document.querySelector("button[data-theme-toggle]").click()`);
+  const explicitDark = await waitForThemeState(
+    { theme: "dark", resolved: "dark", device: "light", stored: "dark" },
+    "Explicit dark theme did not apply",
+  );
+  if (
+    explicitDark.colorScheme !== "dark" ||
+    explicitDark.background !== "#030711" ||
+    explicitDark.label !== "Switch to light theme" ||
+    explicitDark.title !== explicitDark.label ||
+    explicitDark.sunOpacity < 0.99 ||
+    explicitDark.moonOpacity > 0.01 ||
+    explicitDark.themeColors.length === 0 ||
+    explicitDark.themeColors.some((color) => color !== "#030711")
+  ) {
+    throw new Error(`Explicit dark theme failed: ${JSON.stringify(explicitDark)}`);
+  }
+
+  await client.send("Emulation.setEmulatedMedia", {
+    features: [{ name: "prefers-color-scheme", value: "dark" }],
+  });
+  const darkOverrideOnDarkSystem = await waitForThemeState(
+    { theme: "dark", resolved: "dark", device: "dark", stored: "dark" },
+    "Dark override was lost when the device changed to dark",
+  );
+  await client.send("Emulation.setEmulatedMedia", {
+    features: [{ name: "prefers-color-scheme", value: "light" }],
+  });
+  const darkOverrideOnLightSystem = await waitForThemeState(
+    { theme: "dark", resolved: "dark", device: "light", stored: "dark" },
+    "Dark override was lost when the device changed to light",
+  );
+
+  await navigate();
+  const persistedDark = await waitForThemeState(
+    {
+      theme: "dark",
+      resolved: "dark",
+      device: "light",
+      stored: "dark",
+      label: "Switch to light theme",
+    },
+    "Persisted dark state did not settle",
+  );
+  if (
+    persistedDark.theme !== "dark" ||
+    persistedDark.resolved !== "dark" ||
+    persistedDark.device !== "light" ||
+    persistedDark.stored !== "dark" ||
+    persistedDark.label !== "Switch to light theme"
+  ) {
+    throw new Error(`Dark theme did not persist after refresh: ${JSON.stringify(persistedDark)}`);
+  }
+
+  await evaluate(`localStorage.removeItem("theme")`);
+  await navigate();
+  const freshSystemLight = await waitForThemeState(
+    { theme: "light", device: "light", stored: null, label: "Switch to dark theme" },
+    "Fresh system light state did not settle",
+  );
+  if (
+    freshSystemLight.theme !== "light" ||
+    freshSystemLight.device !== "light" ||
+    freshSystemLight.stored !== null ||
+    freshSystemLight.label !== "Switch to dark theme"
+  ) {
+    throw new Error(`Fresh system light session failed: ${JSON.stringify(freshSystemLight)}`);
+  }
+
+  await client.send("Emulation.setEmulatedMedia", {
+    features: [{ name: "prefers-color-scheme", value: "dark" }],
+  });
+  await navigate();
+  const freshSystemDark = await waitForThemeState(
+    { theme: "dark", device: "dark", stored: null, label: "Switch to light theme" },
+    "Fresh system dark state did not settle",
+  );
+  if (
+    freshSystemDark.theme !== "dark" ||
+    freshSystemDark.resolved !== "dark" ||
+    freshSystemDark.device !== "dark" ||
+    freshSystemDark.stored !== null ||
+    freshSystemDark.label !== "Switch to light theme" ||
+    freshSystemDark.background !== "#030711" ||
+    freshSystemDark.themeColors.length === 0 ||
+    freshSystemDark.themeColors.some((color) => color !== "#030711")
+  ) {
+    throw new Error(`Fresh system dark session failed: ${JSON.stringify(freshSystemDark)}`);
+  }
+
+  const themes = {
+    initialSystemLight,
+    initialSystemDark,
+    explicitLight,
+    lightOverrideOnLightSystem,
+    lightOverrideOnDarkSystem,
+    persistedLight,
+    explicitDark,
+    darkOverrideOnDarkSystem,
+    darkOverrideOnLightSystem,
+    persistedDark,
+    freshSystemLight,
+    freshSystemDark,
+  };
 
   await evaluate(`document.querySelector('button[aria-label^="Copy email"]').focus()`);
   await client.send("Input.dispatchKeyEvent", {
@@ -446,7 +965,7 @@ async function main() {
     mobile: false,
   });
   await navigate("about:blank");
-  await navigate(`${baseUrl}/#projects`);
+  await navigate(`${baseUrl}#projects`);
   await pause(1200);
   const hashNavigation = await evaluate(`(() => {
     const section = document.querySelector("#projects");
@@ -509,7 +1028,7 @@ async function main() {
   }
 
   await navigate("about:blank");
-  await navigate(`${baseUrl}/#contact`);
+  await navigate(`${baseUrl}#contact`);
   await pause(900);
   const contactValidation = await evaluate(`(async () => {
     const form = document.querySelector('form[aria-label="Email contact form"]');
@@ -535,9 +1054,9 @@ async function main() {
   }
 
   await navigate("about:blank");
-  await navigate(`${baseUrl}/#process`);
+  await navigate(`${baseUrl}#process`);
   await evaluate(`document.querySelector("#process").scrollIntoView({ behavior: "instant", block: "start" })`);
-  await pause(150);
+  await pause(500);
   const processNavigation = await evaluate(`(() => ({
     stepCount: document.querySelectorAll("#process li").length,
     activeLabel: document.querySelector('nav[aria-label="Primary navigation"] [aria-current="location"]')?.textContent?.trim() ?? "",
@@ -552,9 +1071,12 @@ async function main() {
   }
 
   await navigate("about:blank");
-  await navigate(`${baseUrl}/#github`);
-  await evaluate(`document.querySelector("#github").scrollIntoView({ behavior: "instant", block: "start" })`);
-  await pause(150);
+  await navigate(`${baseUrl}#github`);
+  await evaluate(`(() => {
+    document.documentElement.style.scrollBehavior = "auto";
+    document.querySelector("#github").scrollIntoView({ behavior: "instant", block: "start" });
+  })()`);
+  await pause(500);
   const githubNavigation = await evaluate(`(() => ({
     activeLabel: document.querySelector('nav[aria-label="Primary navigation"] [aria-current="location"]')?.textContent?.trim() ?? "",
     githubVisible: document.querySelector("#github")?.getBoundingClientRect().top < innerHeight,
@@ -582,6 +1104,216 @@ async function main() {
 
   await client.send("Emulation.setEmulatedMedia", { features: [] });
 
+  async function readLocaleState() {
+    return evaluate(`(() => {
+      const button = document.querySelector("[data-language-toggle]");
+      const flag = button?.querySelector("img");
+      return {
+        pathname: location.pathname,
+        hash: location.hash,
+        lang: document.documentElement.lang,
+        stored: localStorage.getItem("locale"),
+        navigationPending: sessionStorage.getItem("portfolio:locale-navigation"),
+        cookie: document.cookie,
+        greeting: document.querySelector("[data-hero-copy] > p")?.textContent?.trim(),
+        buttonCount: document.querySelectorAll("[data-language-toggle]").length,
+        expanded: button?.getAttribute("aria-expanded"),
+        flagPath: flag ? new URL(flag.src).pathname : null,
+        theme: document.documentElement.dataset.theme,
+        themeLabel: document.querySelector("[data-theme-toggle]")?.getAttribute("aria-label"),
+        scrollY: Math.round(scrollY),
+        innerWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+      };
+    })()`);
+  }
+
+  async function waitForLocale(expectedLocale, label) {
+    let state;
+    for (let attempt = 0; attempt < 80; attempt += 1) {
+      state = await readLocaleState();
+      const expectation = localeExpectations[expectedLocale];
+      if (
+        state.pathname === `/${expectedLocale}` &&
+        state.lang === expectedLocale &&
+        state.greeting === expectation.greeting &&
+        state.flagPath === expectation.flag
+      ) {
+        return state;
+      }
+      await pause(50);
+    }
+    throw new Error(`${label}: ${JSON.stringify(state)}`);
+  }
+
+  async function selectLocaleByClick(locale) {
+    await evaluate(`document.querySelector("[data-language-toggle]").click()`);
+    await pause(80);
+    await evaluate(`document.querySelector('[role="menuitemradio"][lang=${JSON.stringify(locale)}]').click()`);
+    await waitForLocale(locale, `Locale ${locale} did not apply`);
+    let state;
+    for (let attempt = 0; attempt < 60; attempt += 1) {
+      state = await readLocaleState();
+      if (state.navigationPending === null) return state;
+      await pause(50);
+    }
+    throw new Error(`Locale navigation state was not restored: ${JSON.stringify(state)}`);
+  }
+
+  await evaluate(`(() => {
+    localStorage.removeItem("locale");
+    document.cookie = "locale=; Path=/; Max-Age=0; SameSite=Lax";
+  })()`);
+  await navigate(siteOrigin);
+  const defaultLocaleState = await waitForLocale("en-US", "The first visit did not use en-US");
+  if (defaultLocaleState.buttonCount !== 1 || !defaultLocaleState.cookie.includes("locale=en-US")) {
+    throw new Error(`Default locale state failed: ${JSON.stringify(defaultLocaleState)}`);
+  }
+
+  await navigate("about:blank");
+  await navigate(localizedUrl("en-US", "#about"));
+  await evaluate(`(() => {
+    document.documentElement.style.scrollBehavior = "auto";
+    document.querySelector("#about").scrollIntoView({ behavior: "instant", block: "start" });
+  })()`);
+  const scrollBeforeLocaleChange = await evaluate(`Math.round(scrollY)`);
+  const portugueseAfterSelection = await selectLocaleByClick("pt-BR");
+  if (
+    portugueseAfterSelection.hash !== "#about" ||
+    portugueseAfterSelection.scrollY < Math.max(80, scrollBeforeLocaleChange * 0.45) ||
+    portugueseAfterSelection.stored !== "pt-BR" ||
+    !portugueseAfterSelection.cookie.includes("locale=pt-BR")
+  ) {
+    throw new Error(`Locale change did not preserve state: ${JSON.stringify({ scrollBeforeLocaleChange, portugueseAfterSelection })}`);
+  }
+
+  await evaluate(`document.querySelector("[data-language-toggle]").focus()`);
+  await client.send("Input.dispatchKeyEvent", { type: "keyDown", key: "ArrowDown", code: "ArrowDown" });
+  await client.send("Input.dispatchKeyEvent", { type: "keyUp", key: "ArrowDown", code: "ArrowDown" });
+  await pause(100);
+  const keyboardOpen = await evaluate(`(() => ({
+    expanded: document.querySelector("[data-language-toggle]")?.getAttribute("aria-expanded"),
+    optionCount: document.querySelectorAll('[role="menuitemradio"]').length,
+    focusedRole: document.activeElement?.getAttribute("role"),
+  }))()`);
+  if (keyboardOpen.expanded !== "true" || keyboardOpen.optionCount !== 3 || keyboardOpen.focusedRole !== "menuitemradio") {
+    throw new Error(`Language menu keyboard open failed: ${JSON.stringify(keyboardOpen)}`);
+  }
+  await client.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Escape", code: "Escape" });
+  await client.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Escape", code: "Escape" });
+  await pause(80);
+  const keyboardEscape = await evaluate(`(() => ({
+    expanded: document.querySelector("[data-language-toggle]")?.getAttribute("aria-expanded"),
+    focusReturned: document.activeElement === document.querySelector("[data-language-toggle]"),
+  }))()`);
+  if (keyboardEscape.expanded !== "false" || !keyboardEscape.focusReturned) {
+    throw new Error(`Language menu Escape failed: ${JSON.stringify(keyboardEscape)}`);
+  }
+
+  await evaluate(`document.querySelector("[data-language-toggle]").click()`);
+  await evaluate(`document.querySelector("main").dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }))`);
+  await pause(80);
+  const clickOutside = await evaluate(`(() => ({
+    expanded: document.querySelector("[data-language-toggle]")?.getAttribute("aria-expanded"),
+    menuExists: Boolean(document.querySelector('[role="menu"]')),
+  }))()`);
+  if (clickOutside.expanded !== "false" || clickOutside.menuExists) {
+    throw new Error(`Language menu click-outside failed: ${JSON.stringify(clickOutside)}`);
+  }
+
+  await evaluate(`document.querySelector("[data-language-toggle]").focus()`);
+  await client.send("Input.dispatchKeyEvent", {
+    type: "keyDown", key: " ", code: "Space", nativeVirtualKeyCode: 32,
+    text: " ", unmodifiedText: " ", windowsVirtualKeyCode: 32,
+  });
+  await client.send("Input.dispatchKeyEvent", {
+    type: "keyUp", key: " ", code: "Space", windowsVirtualKeyCode: 32,
+  });
+  await pause(100);
+  await client.send("Input.dispatchKeyEvent", { type: "keyDown", key: "End", code: "End" });
+  await client.send("Input.dispatchKeyEvent", { type: "keyUp", key: "End", code: "End" });
+  await client.send("Input.dispatchKeyEvent", {
+    type: "keyDown", key: "Enter", code: "Enter", nativeVirtualKeyCode: 13,
+    text: "\r", unmodifiedText: "\r", windowsVirtualKeyCode: 13,
+  });
+  await client.send("Input.dispatchKeyEvent", {
+    type: "keyUp", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13,
+  });
+  const spanishAfterKeyboard = await waitForLocale("es-ES", "Keyboard locale selection did not apply");
+  if (spanishAfterKeyboard.stored !== "es-ES" || !spanishAfterKeyboard.cookie.includes("locale=es-ES")) {
+    throw new Error(`Keyboard locale persistence failed: ${JSON.stringify(spanishAfterKeyboard)}`);
+  }
+
+  const themeLocaleCombinations = [];
+  for (const locale of locales) {
+    await navigate(localizedUrl(locale));
+    for (const theme of ["dark", "light"]) {
+      await evaluate(`(() => {
+        if (document.documentElement.dataset.theme !== ${JSON.stringify(theme)}) {
+          document.querySelector("[data-theme-toggle]").click();
+        }
+      })()`);
+      const state = await waitForThemeState(
+        { theme, stored: theme },
+        `${theme} + ${locale} did not apply`,
+      );
+      const localeState = await readLocaleState();
+      const expectedThemeLabel = theme === "dark"
+        ? localeExpectations[locale].themeToLight
+        : localeExpectations[locale].themeToDark;
+      const combination = {
+        locale,
+        theme,
+        lang: localeState.lang,
+        label: state.label,
+        scrollWidth: localeState.scrollWidth,
+        innerWidth: localeState.innerWidth,
+      };
+      themeLocaleCombinations.push(combination);
+      if (
+        combination.lang !== locale ||
+        combination.label !== expectedThemeLabel ||
+        combination.scrollWidth > combination.innerWidth
+      ) {
+        throw new Error(`Theme and locale combination failed: ${JSON.stringify(combination)}`);
+      }
+    }
+  }
+
+  await selectLocaleByClick("pt-BR");
+  await evaluate(`(() => {
+    if (document.documentElement.dataset.theme !== "dark") {
+      document.querySelector("[data-theme-toggle]").click();
+    }
+  })()`);
+  await waitForThemeState({ theme: "dark", stored: "dark" }, "Dark Portuguese setup failed");
+  await navigate(siteOrigin);
+  const persistedDarkPortuguese = await waitForLocale("pt-BR", "Dark Portuguese locale did not persist");
+  if (
+    persistedDarkPortuguese.theme !== "dark" ||
+    persistedDarkPortuguese.stored !== "pt-BR" ||
+    persistedDarkPortuguese.themeLabel !== localeExpectations["pt-BR"].themeToLight
+  ) {
+    throw new Error(`Dark + Portuguese persistence failed: ${JSON.stringify(persistedDarkPortuguese)}`);
+  }
+
+  await selectLocaleByClick("es-ES");
+  await evaluate(`(() => {
+    if (document.documentElement.dataset.theme !== "light") {
+      document.querySelector("[data-theme-toggle]").click();
+    }
+  })()`);
+  await waitForThemeState({ theme: "light", stored: "light" }, "Light Spanish setup failed");
+  await navigate(siteOrigin);
+  const persistedLightSpanish = await waitForLocale("es-ES", "Light Spanish locale did not persist");
+  if (
+    persistedLightSpanish.theme !== "light" ||
+    persistedLightSpanish.stored !== "es-ES" ||
+    persistedLightSpanish.themeLabel !== localeExpectations["es-ES"].themeToDark
+  ) {
+    throw new Error(`Light + Spanish persistence failed: ${JSON.stringify(persistedLightSpanish)}`);
+  }
+
   const failedViewports = results.filter((result) => result.failures.length > 0);
   if (failedViewports.length || consoleErrors.length || networkErrors.length) {
     throw new Error(
@@ -590,6 +1322,7 @@ async function main() {
   }
 
   console.log(JSON.stringify({
+    ssrLocales,
     viewports: results,
     menu: { openMenu, closedMenu },
     themes,
@@ -604,6 +1337,17 @@ async function main() {
     processNavigation,
     githubNavigation,
     reducedMotion,
+    language: {
+      defaultLocaleState,
+      portugueseAfterSelection,
+      keyboardOpen,
+      keyboardEscape,
+      clickOutside,
+      spanishAfterKeyboard,
+      persistedDarkPortuguese,
+      persistedLightSpanish,
+    },
+    themeLocaleCombinations,
   }, null, 2));
   client.close();
   await fetch(`${debugUrl}/json/close/${target.id}`);

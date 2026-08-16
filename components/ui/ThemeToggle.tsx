@@ -1,6 +1,9 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+
+import type { Messages } from "@/i18n";
+
 import { Icon } from "./Icon";
 import styles from "./ui.module.css";
 
@@ -12,6 +15,14 @@ function isTheme(value: string | null | undefined): value is Theme {
   return value === "dark" || value === "light";
 }
 
+function getSystemTheme(mediaQuery?: MediaQueryList): Theme {
+  const prefersDark = mediaQuery
+    ? mediaQuery.matches
+    : window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+  return prefersDark ? "dark" : "light";
+}
+
 function getStoredTheme(): Theme | null {
   try {
     const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
@@ -21,29 +32,28 @@ function getStoredTheme(): Theme | null {
   }
 }
 
-function getSystemTheme(mediaQuery?: MediaQueryList): Theme {
-  const prefersLight = mediaQuery
-    ? mediaQuery.matches
-    : window.matchMedia("(prefers-color-scheme: light)").matches;
-
-  return prefersLight ? "light" : "dark";
+function updateThemeColor(theme: Theme) {
+  const color = theme === "dark" ? "#030711" : "#f6f8fc";
+  document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((meta) => {
+    meta.content = color;
+  });
 }
 
 function applyTheme(theme: Theme) {
-  document.documentElement.dataset.theme = theme;
-  document.documentElement.style.colorScheme = theme;
+  const root = document.documentElement;
+  root.dataset.theme = theme;
+  root.dataset.resolvedTheme = theme;
+  root.style.colorScheme = theme;
+  updateThemeColor(theme);
 }
 
-const themeListeners = new Set<() => void>();
-
-function emitThemeChange() {
-  themeListeners.forEach((listener) => listener());
+function announceThemeChange() {
+  window.dispatchEvent(new Event("themechange"));
 }
 
 function getThemeSnapshot(): Theme {
   const documentTheme = document.documentElement.dataset.theme;
-  if (isTheme(documentTheme)) return documentTheme;
-  return getStoredTheme() ?? getSystemTheme();
+  return isTheme(documentTheme) ? documentTheme : getStoredTheme() ?? getSystemTheme();
 }
 
 function getServerThemeSnapshot(): Theme {
@@ -51,37 +61,47 @@ function getServerThemeSnapshot(): Theme {
 }
 
 function subscribeToTheme(listener: () => void) {
-  const mediaQuery = window.matchMedia("(prefers-color-scheme: light)");
+  const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+  updateThemeColor(getThemeSnapshot());
 
-  function handleSystemThemeChange(event: MediaQueryListEvent) {
-    if (getStoredTheme() !== null) return;
-    applyTheme(event.matches ? "light" : "dark");
-    emitThemeChange();
+  function handleThemeChange() {
+    listener();
+  }
+
+  function handleSystemThemeChange() {
+    if (getStoredTheme()) return;
+    applyTheme(getSystemTheme(mediaQuery));
+    announceThemeChange();
   }
 
   function handleStorageChange(event: StorageEvent) {
-    if (event.key !== THEME_STORAGE_KEY) return;
+    if (event.key !== THEME_STORAGE_KEY && event.key !== null) return;
     applyTheme(isTheme(event.newValue) ? event.newValue : getSystemTheme(mediaQuery));
-    emitThemeChange();
+    announceThemeChange();
   }
 
-  themeListeners.add(listener);
-  mediaQuery.addEventListener("change", handleSystemThemeChange);
+  window.addEventListener("themechange", handleThemeChange);
   window.addEventListener("storage", handleStorageChange);
+  mediaQuery.addEventListener("change", handleSystemThemeChange);
 
   return () => {
-    themeListeners.delete(listener);
-    mediaQuery.removeEventListener("change", handleSystemThemeChange);
+    window.removeEventListener("themechange", handleThemeChange);
     window.removeEventListener("storage", handleStorageChange);
+    mediaQuery.removeEventListener("change", handleSystemThemeChange);
   };
 }
 
-export function ThemeToggle() {
-  const theme = useSyncExternalStore(subscribeToTheme, getThemeSnapshot, getServerThemeSnapshot);
+export function ThemeToggle({ messages }: { messages: Messages["theme"] }) {
+  const theme = useSyncExternalStore(
+    subscribeToTheme,
+    getThemeSnapshot,
+    getServerThemeSnapshot,
+  );
+  const nextTheme: Theme = theme === "dark" ? "light" : "dark";
+  const accessibleLabel =
+    nextTheme === "light" ? messages.switchToLight : messages.switchToDark;
 
   function toggleTheme() {
-    const nextTheme: Theme = theme === "dark" ? "light" : "dark";
-
     applyTheme(nextTheme);
 
     try {
@@ -89,21 +109,27 @@ export function ThemeToggle() {
     } catch {
       // The selected theme still applies for this page when storage is unavailable.
     }
-    emitThemeChange();
-  }
 
-  const nextTheme = theme === "light" ? "dark" : "light";
-  const accessibleLabel = `Switch to ${nextTheme} theme`;
+    announceThemeChange();
+  }
 
   return (
     <button
       aria-label={accessibleLabel}
       className={styles.themeToggle}
+      data-theme-toggle
       onClick={toggleTheme}
       title={accessibleLabel}
       type="button"
     >
-      <Icon name={theme === "light" ? "moon" : "sun"} size="md" />
+      <span className={styles.themeIconStack} aria-hidden="true">
+        <span className={`${styles.themeIcon} ${styles.themeIconSun}`}>
+          <Icon name="sun" size="md" />
+        </span>
+        <span className={`${styles.themeIcon} ${styles.themeIconMoon}`}>
+          <Icon name="moon" size="md" />
+        </span>
+      </span>
     </button>
   );
 }

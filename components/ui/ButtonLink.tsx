@@ -9,6 +9,7 @@ export type ButtonLinkProps = {
   download?: boolean;
   className?: string;
   ariaLabel?: string;
+  externalDescription?: string;
 };
 
 export function ButtonLink({
@@ -19,9 +20,9 @@ export function ButtonLink({
   download = false,
   className,
   ariaLabel,
+  externalDescription = "opens in a new tab",
 }: ButtonLinkProps) {
   const classes = [styles.button, styles[variant], className].filter(Boolean).join(" ");
-  const externalDescription = "opens in a new tab";
   const accessibleLabel = ariaLabel
     ? `${ariaLabel}${external ? ` (${externalDescription})` : ""}`
     : undefined;

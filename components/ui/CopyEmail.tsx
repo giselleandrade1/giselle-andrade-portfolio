@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+
+import type { Messages } from "@/i18n";
+
 import { Icon } from "./Icon";
 import styles from "./ui.module.css";
 
 export type CopyEmailProps = {
   email: string;
+  messages: Messages["contact"]["copyEmail"];
 };
 
 type CopyStatus = "idle" | "copying" | "copied" | "error";
@@ -46,7 +50,7 @@ async function copyToClipboard(value: string) {
   }
 }
 
-export function CopyEmail({ email }: CopyEmailProps) {
+export function CopyEmail({ email, messages }: CopyEmailProps) {
   const [status, setStatus] = useState<CopyStatus>("idle");
   const resetTimer = useRef<number | null>(null);
   const feedbackId = useId();
@@ -76,17 +80,17 @@ export function CopyEmail({ email }: CopyEmailProps) {
 
   const visibleLabel =
     status === "copying"
-      ? "Copying…"
+      ? messages.copying
       : status === "copied"
-        ? "Copied"
+        ? messages.copied
         : status === "error"
-          ? "Try again"
-          : "Copy email";
+          ? messages.error
+          : messages.idle;
   const feedback =
     status === "copied"
-      ? "Email address copied to the clipboard."
+      ? messages.copiedFeedback
       : status === "error"
-        ? "The email address could not be copied. Please try again."
+        ? messages.errorFeedback
         : "";
 
   return (

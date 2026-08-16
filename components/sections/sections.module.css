@@ -6,14 +6,14 @@
 }
 
 .sectionNote {
-  max-width: 28rem;
+  max-width: 20rem;
   color: var(--text-muted);
   font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-size: var(--text-xs);
   line-height: 1.7;
 }
 
-@media (max-width: 43.99rem) {
+@media (max-width: 61.99rem) {
   .sectionNote {
     display: none;
   }
@@ -26,6 +26,17 @@
   border: 1px solid transparent;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-soft);
+}
+
+.aboutStory,
+.principle,
+.serviceCard,
+.journeyIntro,
+.timelineCard,
+.githubProfile,
+.repoCard,
+.contactCard {
+  container-type: inline-size;
 }
 
 /* About */
@@ -69,7 +80,7 @@
   font-size: var(--heading-md);
 }
 
-.aboutStory p {
+.aboutStory > p:not(.storyLabel) {
   position: relative;
   z-index: 1;
   max-width: var(--measure-copy);
@@ -81,6 +92,9 @@
 .principles {
   display: grid;
   gap: var(--grid-gap);
+  padding: 0;
+  margin: 0;
+  list-style: none;
 }
 
 .principle {
@@ -126,9 +140,11 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-2);
   margin-top: var(--space-6);
+  padding: 0;
+  list-style: none;
 }
 
-.highlights span {
+.highlights li {
   display: flex;
   gap: var(--space-2);
   min-width: 0;
@@ -138,7 +154,7 @@
   font-weight: 600;
 }
 
-.highlights span::before {
+.highlights li::before {
   flex: 0 0 auto;
   width: 0.42rem;
   height: 0.42rem;
@@ -193,6 +209,9 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-2);
   margin-top: var(--space-4);
+  margin-bottom: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .technology {
@@ -229,12 +248,18 @@
   text-transform: uppercase;
 }
 
+@container stack-card (max-width: 24rem) {
+  .technologyList {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Projects */
 .filterBar {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-5);
 }
 
 .filterButton {
@@ -371,6 +396,9 @@
   flex-wrap: wrap;
   gap: var(--space-2);
   margin-top: var(--space-4);
+  margin-bottom: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .tag {
@@ -488,15 +516,15 @@
 /* Services */
 .serviceGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
 }
 
 .serviceCard {
   position: relative;
   min-width: 0;
-  min-height: 15rem;
-  padding: 1.4rem;
+  min-height: 13rem;
+  padding: var(--card-padding);
   overflow: hidden;
   background: var(--surface-1);
   border: 1px solid var(--border);
@@ -539,26 +567,26 @@
 .serviceNumber {
   color: var(--text-muted);
   font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
 }
 
 .serviceCard h3 {
-  margin-top: 2rem;
-  font-size: 1.2rem;
+  margin-top: var(--space-5);
+  font-size: var(--heading-sm);
   letter-spacing: -0.025em;
 }
 
 .serviceCard p {
   margin-top: 0.8rem;
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
   line-height: 1.7;
 }
 
 /* Experience */
 .journeyLayout {
   display: grid;
-  gap: 2rem;
+  gap: var(--grid-gap);
 }
 
 .journeyIntro {
@@ -566,19 +594,19 @@
 }
 
 .journeyIntro p {
-  max-width: 31rem;
+  max-width: 52ch;
   color: var(--text-secondary);
   line-height: 1.8;
 }
 
 .journeyAside {
-  margin-top: 1.4rem;
-  padding: 1rem;
+  margin-top: var(--space-4);
+  padding: var(--space-4);
   color: var(--text-muted);
   background: var(--cyan-soft);
   border: 1px solid color-mix(in srgb, var(--cyan) 28%, transparent);
   border-radius: var(--radius-md);
-  font-size: 0.82rem;
+  font-size: var(--text-sm);
 }
 
 .timeline {
@@ -632,7 +660,7 @@
   gap: 0.45rem 0.8rem;
   color: var(--accent);
   font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 0.68rem;
+  font-size: var(--text-xs);
 }
 
 .timelineContext {
@@ -641,14 +669,14 @@
 
 .timelineCard h3 {
   margin-top: 0.65rem;
-  font-size: 1.05rem;
+  font-size: var(--heading-sm);
   letter-spacing: -0.02em;
 }
 
 .timelineCard p {
   margin-top: 0.6rem;
   color: var(--text-secondary);
-  font-size: 0.86rem;
+  font-size: var(--text-sm);
   line-height: 1.65;
 }
 
@@ -663,7 +691,7 @@
   min-width: 0;
   flex-direction: column;
   justify-content: space-between;
-  padding: clamp(1.35rem, 4vw, 2.2rem);
+  padding: var(--card-padding-lg);
 }
 
 .githubIdentity {
@@ -686,7 +714,7 @@
 }
 
 .githubIdentity h3 {
-  font-size: 1.2rem;
+  font-size: var(--heading-sm);
   letter-spacing: -0.025em;
 }
 
@@ -694,7 +722,7 @@
   margin-top: 0.2rem;
   color: var(--text-muted);
   font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
 }
 
 .githubCopy {
@@ -735,13 +763,13 @@
 .repoCard h3 {
   min-width: 0;
   font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 0.82rem;
+  font-size: var(--heading-sm);
   letter-spacing: -0.02em;
 }
 
 .repoCard p {
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   line-height: 1.55;
 }
 
@@ -754,16 +782,16 @@
 .repoTags span {
   color: var(--text-secondary);
   font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 0.64rem;
+  font-size: var(--text-xs);
 }
 
 /* Contact */
 .contactCard {
   position: relative;
   display: grid;
-  gap: 2rem;
+  gap: var(--grid-gap);
   min-width: 0;
-  padding: clamp(1.5rem, 6vw, 4.5rem);
+  padding: clamp(1.25rem, 1rem + 2vw, 3rem);
   overflow: hidden;
 }
 
@@ -797,7 +825,7 @@
 .contactCopy h2 {
   max-width: 12ch;
   margin-top: 1rem;
-  font-size: clamp(2.35rem, 8vw, 5.75rem);
+  font-size: var(--heading-contact);
   letter-spacing: -0.07em;
   line-height: 0.94;
 }
@@ -875,6 +903,25 @@
   line-height: 1.55;
 }
 
+.aboutStory > p:not(.storyLabel),
+.principle p,
+.projectDescription,
+.caseContent dd,
+.decisionList li,
+.serviceCard p,
+.journeyIntro > p,
+.timelineCard p,
+.githubCopy,
+.repoCard p,
+.contactCopy > p:last-of-type,
+.contactNote {
+  hyphens: auto;
+  overflow-wrap: break-word;
+  text-align: justify;
+  text-align-last: left;
+  word-break: normal;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .stackCard:hover,
   .projectCard:hover,
@@ -912,10 +959,7 @@
 }
 
 @media (min-width: 44rem) {
-  .sectionHeaderRow {
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-
+  .stackGrid,
   .projectGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -923,16 +967,28 @@
   .repoList {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .serviceGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (min-width: 62rem) {
+  .sectionHeaderRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
   .aboutLayout {
     grid-template-columns: minmax(0, 1.3fr) minmax(20rem, 0.7fr);
   }
 
+  .serviceGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .journeyLayout {
     grid-template-columns: minmax(16rem, 0.62fr) minmax(0, 1.38fr);
-    gap: clamp(2.5rem, 7vw, 6.5rem);
+    gap: clamp(2rem, 4vw, 4.5rem);
   }
 
   .githubPanel {
@@ -945,20 +1001,29 @@
 }
 
 @media (min-width: 75rem) {
+  .sectionNote {
+    max-width: 25rem;
+  }
+
+  .stackGrid,
   .projectGrid {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
 
-  .projectCard {
-    grid-column: span 6;
-  }
-
-  .projectCard[data-featured="true"]:first-of-type {
-    grid-column: span 7;
-  }
-
-  .projectCard[data-featured="true"]:nth-of-type(2) {
-    grid-column: span 5;
+@container (max-width: 22rem) {
+  .aboutStory > p:not(.storyLabel),
+  .principle p,
+  .projectDescription,
+  .caseContent dd,
+  .decisionList li,
+  .serviceCard p,
+  .timelineCard p,
+  .repoCard p,
+  .contactCopy > p:last-of-type,
+  .contactNote {
+    text-align: left;
+    text-align-last: auto;
   }
 }
 

@@ -1,5 +1,6 @@
 .button,
 .themeToggle,
+.languageButton,
 .copyButton {
   border: 1px solid var(--border-hover);
   border-radius: var(--radius-sm);
@@ -29,7 +30,7 @@
 }
 
 .button > svg,
-.themeToggle > svg,
+.themeToggle svg,
 .copyButton > svg {
   flex: 0 0 auto;
 }
@@ -53,6 +54,8 @@
 
 .button:focus-visible,
 .themeToggle:focus-visible,
+.languageButton:focus-visible,
+.languageOption:focus-visible,
 .copyButton:focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 3px;
@@ -74,7 +77,7 @@
   display: inline-flex;
   width: fit-content;
   max-width: 100%;
-  padding: var(--space-2) var(--space-3);
+  padding: 0.35rem 0.65rem;
   color: var(--text-primary);
   background: var(--accent-soft);
   border: 1px solid var(--border-hover);
@@ -98,7 +101,12 @@
   max-width: var(--measure-copy);
   color: var(--text-secondary);
   font-size: var(--text-lg);
+  hyphens: auto;
   line-height: var(--leading-copy);
+  overflow-wrap: break-word;
+  text-align: justify;
+  text-align-last: left;
+  word-break: normal;
 }
 
 .sectionHeadingCenter .sectionDescription {
@@ -106,6 +114,7 @@
 }
 
 .themeToggle,
+.languageButton,
 .copyButton {
   display: inline-flex;
   gap: var(--space-2);
@@ -118,8 +127,147 @@
 }
 
 .themeToggle {
+  position: relative;
   width: var(--control-md);
+  min-width: var(--control-md);
+  height: var(--control-md);
   padding: 0;
+  overflow: hidden;
+}
+
+.languageSelector {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.languageButton {
+  width: var(--control-md);
+  min-width: var(--control-md);
+  height: var(--control-md);
+  min-height: var(--control-md);
+  padding: 0;
+  overflow: hidden;
+}
+
+.languageFlag {
+  display: block;
+  width: 1.375rem;
+  height: auto;
+  max-height: 0.9375rem;
+  object-fit: contain;
+  border: 1px solid color-mix(in srgb, var(--border-strong) 70%, transparent);
+  border-radius: 0.2rem;
+  box-shadow: 0 0.15rem 0.45rem rgba(0, 0, 0, 0.2);
+}
+
+.languageMenu {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  z-index: 160;
+  display: grid;
+  width: min(15rem, calc(100vw - 2rem));
+  min-width: 0;
+  padding: var(--space-2);
+  background: color-mix(in srgb, var(--surface-raised) 94%, transparent);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(var(--blur-card)) saturate(135%);
+  transform-origin: top right;
+  animation: language-menu-in 190ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.languageOption {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--control-md);
+  padding: var(--space-2) var(--space-3);
+  align-items: center;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 650;
+  line-height: 1.3;
+  text-align: left;
+  transition:
+    color var(--transition-fast),
+    background-color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.languageOption[data-selected="true"] {
+  color: var(--text-primary);
+  background: var(--accent-soft);
+  border-color: var(--border-hover);
+}
+
+.languageOptionLabel {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.languageOptionIndicator {
+  display: inline-grid;
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+  place-items: center;
+  color: var(--accent);
+  opacity: 0;
+}
+
+.languageOptionIndicator[data-visible="true"] {
+  opacity: 1;
+}
+
+@keyframes language-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.25rem) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.themeIconStack {
+  display: grid;
+  place-items: center;
+}
+
+.themeIcon {
+  grid-area: 1 / 1;
+  transition:
+    opacity 200ms ease,
+    transform 220ms ease;
+}
+
+.themeIconSun {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.themeIconMoon {
+  opacity: 0;
+  transform: rotate(-35deg) scale(0.72);
+}
+
+:global(:root[data-theme="light"]) .themeIconSun {
+  opacity: 0;
+  transform: rotate(35deg) scale(0.72);
+}
+
+:global(:root[data-theme="light"]) .themeIconMoon {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
 }
 
 .copyEmail {
@@ -165,6 +313,7 @@
 @media (hover: hover) and (pointer: fine) {
   .button:hover,
   .themeToggle:hover,
+  .languageButton:hover,
   .copyButton:hover:not(:disabled) {
     transform: translateY(-2px);
   }
@@ -177,6 +326,7 @@
 
   .secondary:hover,
   .themeToggle:hover,
+  .languageButton:hover,
   .copyButton:hover:not(:disabled) {
     background: var(--surface-3);
     border-color: var(--accent);
@@ -187,10 +337,27 @@
     background: var(--accent-soft);
     border-color: var(--accent);
   }
+
+  .languageOption:hover {
+    color: var(--text-primary);
+    background: var(--surface-3);
+    border-color: var(--border);
+  }
+}
+
+@media (min-width: 62rem) {
+  .themeToggle,
+  .languageButton {
+    width: 2.5rem;
+    min-width: 2.5rem;
+    height: 2.5rem;
+    min-height: 2.5rem;
+  }
 }
 
 .button:active,
 .themeToggle:active,
+.languageButton:active,
 .copyButton:active:not(:disabled) {
   transform: translateY(0);
 }
@@ -198,14 +365,24 @@
 @media (prefers-reduced-motion: reduce) {
   .button,
   .themeToggle,
+  .languageButton,
+  .themeIcon,
+  .languageMenu,
+  .languageOption,
   .copyButton {
     transition: none;
+  }
+
+  .languageMenu {
+    animation: none;
   }
 
   .button:hover,
   .button:active,
   .themeToggle:hover,
   .themeToggle:active,
+  .languageButton:hover,
+  .languageButton:active,
   .copyButton:hover,
   .copyButton:active {
     transform: none;
@@ -215,6 +392,9 @@
 @media (forced-colors: active) {
   .button,
   .themeToggle,
+  .languageButton,
+  .languageMenu,
+  .languageOption,
   .copyButton,
   .eyebrow {
     border-color: ButtonText;
@@ -223,6 +403,8 @@
 
   .button:focus-visible,
   .themeToggle:focus-visible,
+  .languageButton:focus-visible,
+  .languageOption:focus-visible,
   .copyButton:focus-visible {
     outline-color: Highlight;
   }

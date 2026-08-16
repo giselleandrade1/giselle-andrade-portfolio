@@ -1,6 +1,7 @@
 import { profile, socialLinks } from "@/data/profile";
 import { CopyEmail } from "@/components/ui/CopyEmail";
 import { Icon, type IconName } from "@/components/ui/Icon";
+import type { Messages } from "@/i18n";
 
 import { ContactForm } from "./ContactForm";
 import styles from "./sections.module.css";
@@ -11,18 +12,20 @@ const contactIcons: Record<(typeof socialLinks)[number]["platform"], IconName> =
   email: "mail",
 };
 
-export function Contact() {
+type ContactProps = Readonly<{
+  common: Messages["common"];
+  messages: Messages["contact"];
+}>;
+
+export function Contact({ common, messages }: ContactProps) {
   return (
-    <section className="section" id="contact" aria-label="Contact Giselle Andrade">
+    <section className="section" id="contact" aria-label={messages.sectionLabel}>
       <div className="container">
         <div className={`${styles.contactCard} ${styles.surfaceCard}`} data-contact-layout data-reveal>
           <div className={styles.contactCopy}>
-            <p className={styles.contactEyebrow}>Start a conversation</p>
-            <h2>Let&apos;s build something meaningful.</h2>
-            <p>
-              I&apos;m open to software-development opportunities, collaborations, and conversations
-              about backend systems, web applications, and thoughtful digital products.
-            </p>
+            <p className={styles.contactEyebrow}>{messages.eyebrow}</p>
+            <h2>{messages.title}</h2>
+            <p>{messages.description}</p>
           </div>
 
           <div className={styles.contactDetails}>
@@ -38,22 +41,20 @@ export function Contact() {
                   <Icon name={contactIcons[link.platform]} size="md" />
                 </span>
                 <span className={styles.contactLinkText}>
-                  <strong>{link.label}</strong>
+                  <strong>{link.platform === "email" ? common.email : link.label}</strong>
                   <span>{link.handle}</span>
                 </span>
                 {link.external ? <Icon name="arrowUpRight" size="sm" /> : null}
-                {link.external ? <span className="srOnly"> (opens in a new tab)</span> : null}
+                {link.external ? <span className="srOnly"> ({common.externalTab})</span> : null}
               </a>
             ))}
             <div className={styles.copyRow}>
-              <CopyEmail email={profile.email} />
-              <p className={styles.contactNote}>
-                Copy the address or use the email link. No form pretends to send a message without a backend.
-              </p>
+              <CopyEmail email={profile.email} messages={messages.copyEmail} />
+              <p className={styles.contactNote}>{messages.copyNote}</p>
             </div>
           </div>
         </div>
-        <ContactForm email={profile.email} />
+        <ContactForm email={profile.email} messages={messages.form} />
       </div>
     </section>
   );
