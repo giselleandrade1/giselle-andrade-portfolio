@@ -7,6 +7,7 @@ const tones = {
   strong: "border-lavender/40 bg-imperial/40 text-foreground",
   muted: "border-border bg-transparent text-muted-foreground",
   success: "border-success/30 bg-success/10 text-success",
+  warning: "border-warning/35 bg-warning/10 text-warning",
 } as const;
 
 export function Tag({
@@ -16,7 +17,7 @@ export function Tag({
 }: {
   children: ReactNode;
   tone?: keyof typeof tones;
-  className?: string;
+  className?: string | undefined;
 }) {
   return (
     <span

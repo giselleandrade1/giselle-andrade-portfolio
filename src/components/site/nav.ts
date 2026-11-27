@@ -1,8 +1,9 @@
+/** Site pages; labels come from the active language dictionary (t.nav[to]). */
 export const navItems = [
-  { to: "/", label: "Início" },
-  { to: "/sobre", label: "Sobre" },
-  { to: "/experiencia", label: "Experiência" },
-  { to: "/projetos", label: "Projetos" },
-  { to: "/formacao", label: "Formação" },
-  { to: "/contato", label: "Contato" },
+  { to: "/" },
+  { to: "/sobre" },
+  { to: "/experiencia" },
+  { to: "/projetos" },
+  { to: "/formacao" },
+  { to: "/contato" },
 ] as const;

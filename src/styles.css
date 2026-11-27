@@ -1,10 +1,22 @@
 /*
  * Tailwind v4 entry: config lives here, with no tailwind.config.js or PostCSS plugin.
- * Keep every @import in this top block. Web fonts load via <link> in src/routes/__root.tsx.
+ * Keep every @import in this top block. Fonts are self-hosted through @fontsource packages (no CDN).
  */
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/space-grotesk";
+@import "@fontsource-variable/jetbrains-mono";
+
+/* Flag emoji for the language switcher on systems without colour flags (e.g. Windows).
+   Font: "Twemoji Country Flags" by TalkJS (MIT); artwork from Twemoji, CC BY 4.0. */
+@font-face {
+  font-family: "Twemoji Country Flags";
+  src: url("./assets/fonts/TwemojiCountryFlags.woff2") format("woff2");
+  unicode-range: U+1F1E6-1F1FF, U+1F3F4, U+E0062-E0063, U+E0065, U+E0067, U+E006C, U+E006E, U+E0073-E0074, U+E0077, U+E007F;
+  font-display: swap;
+}
 
 @custom-variant dark (&:is(.dark *));
 
@@ -15,9 +27,9 @@
  */
 
 @theme inline {
-  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-display: "Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, monospace;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -44,6 +56,7 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
+  --color-warning: var(--warning);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -54,6 +67,7 @@
   --color-surface-2: var(--surface-2);
   --color-imperial: var(--imperial);
   --color-lavender: var(--lavender);
+  --color-vibrant: var(--vibrant);
   --color-lilac: var(--lilac);
   --color-glow: var(--glow);
 
@@ -79,16 +93,18 @@
 :root {
   --radius: 0.875rem;
 
-  /* Palette */
-  --bg-deep: oklch(0.13 0.017 298.9); /* #08060D */
-  --surface-2: oklch(0.186 0.03 295.5); /* #14101F */
-  --surface: oklch(0.232 0.065 303.4); /* #241436 */
-  --imperial: oklch(0.382 0.164 299.5); /* #52218B */
-  --violet: oklch(0.606 0.219 292.7); /* #8B5CF6 */
-  --lavender: oklch(0.737 0.142 299.4); /* #B794F6 */
+  /* Palette (brand hex in comments) */
+  --bg-deep: oklch(0.137 0.011 284.8); /* #08080D preto profundo */
+  --surface-2: oklch(0.177 0.016 284.6); /* #101018 preto secundário */
+  --surface: oklch(0.222 0.05 292.5); /* #1C1630 superfície elevada */
+  --imperial: oklch(0.491 0.241 292.6); /* #6D28D9 violeta profundo */
+  --violet: oklch(0.606 0.219 292.7); /* #8B5CF6 roxo principal */
+  --vibrant: oklch(0.627 0.233 303.9); /* #A855F7 roxo vibrante */
+  --lavender: oklch(0.811 0.101 293.6); /* #C4B5FD destaque legível */
   --lilac: oklch(0.902 0.06 306.7); /* #E9D5FF */
-  --text: oklch(0.969 0.016 293.8); /* #F5F3FF */
-  --glow: oklch(0.709 0.159 293.5); /* #A78BFA */
+  --text: oklch(0.984 0.003 247.9); /* #F8FAFC branco */
+  --text-muted: oklch(0.712 0.013 286.1); /* #A1A1AA cinza secundário */
+  --glow: var(--vibrant);
 
   /* Semantic (shadcn) */
   --background: var(--bg-deep);
@@ -101,15 +117,16 @@
   --primary-foreground: oklch(0.99 0.005 293.8);
   --secondary: var(--surface);
   --secondary-foreground: var(--lilac);
-  --muted: oklch(0.2 0.035 298);
-  --muted-foreground: oklch(0.78 0.04 300);
+  --muted: oklch(0.2 0.02 288);
+  --muted-foreground: var(--text-muted);
   --accent: var(--surface);
   --accent-foreground: var(--lilac);
   --destructive: oklch(0.68 0.19 22);
   --destructive-foreground: var(--text);
   --success: oklch(0.8 0.15 160);
-  --border: oklch(0.737 0.142 299.4 / 14%);
-  --input: oklch(0.737 0.142 299.4 / 22%);
+  --warning: oklch(0.83 0.14 80);
+  --border: oklch(0.811 0.101 293.6 / 11%);
+  --input: oklch(0.811 0.101 293.6 / 20%);
   --ring: var(--lavender);
 
   --chart-1: var(--violet);
@@ -130,27 +147,27 @@
   --gradient-brand: linear-gradient(
     135deg,
     var(--imperial) 0%,
-    var(--violet) 55%,
-    var(--lavender) 100%
+    var(--violet) 50%,
+    var(--vibrant) 100%
   );
   --gradient-text: linear-gradient(
     100deg,
     var(--text) 0%,
-    var(--lilac) 40%,
-    var(--lavender) 75%,
-    var(--glow) 100%
+    var(--lilac) 35%,
+    var(--lavender) 65%,
+    var(--vibrant) 100%
   );
   --gradient-surface: linear-gradient(
     160deg,
-    oklch(0.232 0.065 303.4 / 70%),
-    oklch(0.186 0.03 295.5 / 55%)
+    oklch(0.222 0.05 292.5 / 55%),
+    oklch(0.177 0.016 284.6 / 70%)
   );
   --gradient-aurora:
-    radial-gradient(60% 50% at 15% 0%, oklch(0.382 0.164 299.5 / 45%), transparent 70%),
-    radial-gradient(45% 40% at 90% 10%, oklch(0.606 0.219 292.7 / 22%), transparent 70%),
-    radial-gradient(50% 50% at 50% 100%, oklch(0.382 0.164 299.5 / 18%), transparent 70%);
+    radial-gradient(60% 50% at 15% 0%, oklch(0.491 0.241 292.6 / 30%), transparent 70%),
+    radial-gradient(45% 40% at 90% 10%, oklch(0.627 0.233 303.9 / 16%), transparent 70%),
+    radial-gradient(50% 50% at 50% 100%, oklch(0.491 0.241 292.6 / 14%), transparent 70%);
   --shadow-glow:
-    0 0 0 1px oklch(0.709 0.159 293.5 / 25%), 0 10px 40px -12px oklch(0.606 0.219 292.7 / 55%);
+    0 0 0 1px oklch(0.627 0.233 303.9 / 28%), 0 14px 40px -16px oklch(0.606 0.219 292.7 / 50%);
   --shadow-card: 0 1px 0 0 oklch(0.902 0.06 306.7 / 6%) inset, 0 20px 50px -30px oklch(0 0 0 / 80%);
 }
 
@@ -208,6 +225,21 @@
   color: transparent;
 }
 
+@utility font-flag {
+  font-family: "Twemoji Country Flags", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
+
+/* Long-form copy: justified with automatic hyphenation (needs the right <html lang>). */
+@utility text-prose {
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  hyphenate-limit-chars: 6 3 3;
+  line-height: 1.75;
+  text-wrap: pretty;
+}
+
 @utility bg-brand {
   background-image: var(--gradient-brand);
 }
@@ -218,8 +250,8 @@
 
 @utility bg-grid {
   background-image:
-    linear-gradient(oklch(0.737 0.142 299.4 / 6%) 1px, transparent 1px),
-    linear-gradient(90deg, oklch(0.737 0.142 299.4 / 6%) 1px, transparent 1px);
+    linear-gradient(oklch(0.811 0.101 293.6 / 6%) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(0.811 0.101 293.6 / 6%) 1px, transparent 1px);
   background-size: 44px 44px;
   mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 30%, transparent 75%);
 }
@@ -250,7 +282,7 @@
     pointer-events: none;
     background: radial-gradient(
       380px circle at var(--mx, 50%) var(--my, 50%),
-      oklch(0.737 0.142 299.4 / 16%),
+      oklch(0.811 0.101 293.6 / 16%),
       transparent 45%
     );
     opacity: 0;
@@ -258,7 +290,7 @@
   }
   &:hover {
     --lift: -4px;
-    border-color: oklch(0.737 0.142 299.4 / 40%);
+    border-color: oklch(0.811 0.101 293.6 / 40%);
     box-shadow: var(--shadow-glow);
   }
   &:hover::after {
@@ -537,6 +569,7 @@
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }

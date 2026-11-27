@@ -1,16 +1,19 @@
-import { Link, createFileRoute, notFound } from "@tanstack/react-router";
-import { ArrowLeft, ExternalLink, Github, Play } from "lucide-react";
+import { Link, createFileRoute, notFound, redirect } from "@tanstack/react-router";
+import { ArrowLeft, ExternalLink, Github, Lock, Play, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 
-import { ProjectVisual } from "@/components/site/ProjectCard";
+import { DemoStatusTag, ProjectVisual } from "@/components/site/ProjectCard";
 import { Tag } from "@/components/site/Tag";
 import { Button } from "@/components/ui/button";
-import { getProject } from "@/data/projects";
+import { findProject, getProject } from "@/data/projects";
 
 export const Route = createFileRoute("/projetos/$slug")({
   loader: ({ params }) => {
-    const project = getProject(params.slug);
+    const project = findProject(params.slug);
     if (!project) throw notFound();
+    // Old slugs keep working: send visitors to the current address.
+    if (project.slug !== params.slug)
+      throw redirect({ to: "/projetos/$slug", params: { slug: project.slug }, statusCode: 301 });
     return { slug: project.slug, name: project.name, description: project.description };
   },
   head: ({ loaderData }) => {
@@ -26,8 +29,11 @@ export const Route = createFileRoute("/projetos/$slug")({
         { property: "og:description", content: description },
         { property: "og:type", content: "article" },
         { name: "twitter:card", content: "summary_large_image" },
-        ...(loaderData ? [] : [{ name: "robots", content: "noindex" }]),
+        ...(loaderData
+          ? [{ property: "og:url", content: `/projetos/${loaderData.slug}` }]
+          : [{ name: "robots", content: "noindex" }]),
       ],
+      links: loaderData ? [{ rel: "canonical", href: `/projetos/${loaderData.slug}` }] : [],
     };
   },
   component: ProjectPage,
@@ -47,25 +53,45 @@ function ProjectPage() {
       >
         <ArrowLeft className="size-4" aria-hidden /> Projetos
       </Link>
-      <p className="eyebrow mt-6">{project.categories.join(" · ")}</p>
+      <div className="mt-6 flex flex-wrap items-center gap-3">
+        <p className="eyebrow">{project.categories.join(" · ")}</p>
+        <DemoStatusTag project={project} />
+      </div>
       <h1 className="mt-2 text-4xl font-bold sm:text-5xl">{project.name}</h1>
       <p className="mt-4 max-w-2xl text-muted-foreground sm:text-lg">{project.description}</p>
       <div className="mt-6 flex flex-wrap gap-3">
-        {demo.status === "online" ? (
+        {demo.status !== "offline" ? (
           <Button asChild variant="hero">
             <a href={demo.url} target="_blank" rel="noopener noreferrer">
               <ExternalLink aria-hidden /> Live Demo
+              <span className="sr-only"> (abre em nova aba)</span>
             </a>
           </Button>
         ) : null}
-        <Button asChild variant="glass">
-          <a href={project.repo} target="_blank" rel="noopener noreferrer">
-            <Github aria-hidden /> Código-fonte
-          </a>
-        </Button>
+        {project.repo ? (
+          <Button asChild variant="glass">
+            <a href={project.repo} target="_blank" rel="noopener noreferrer">
+              <Github aria-hidden /> Código-fonte
+              <span className="sr-only"> (abre em nova aba)</span>
+            </a>
+          </Button>
+        ) : (
+          <span className="inline-flex h-10 items-center gap-2 rounded-full border border-border px-5 text-sm text-muted-foreground">
+            <Lock className="size-4" aria-hidden /> Código privado
+          </span>
+        )}
       </div>
       {demo.status === "online" && demo.note ? (
         <p className="mt-3 text-sm text-muted-foreground">{demo.note}</p>
+      ) : null}
+      {demo.status === "unavailable" ? (
+        <p
+          role="note"
+          className="mt-4 flex max-w-2xl gap-2 rounded-xl border border-warning/30 bg-warning/10 p-4 text-sm text-foreground"
+        >
+          <TriangleAlert className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden />
+          <span>{demo.reason}</span>
+        </p>
       ) : null}
       {demo.status === "offline" ? (
         <p className="mt-3 max-w-2xl text-sm text-muted-foreground">{demo.reason}</p>
@@ -84,6 +110,7 @@ function ProjectPage() {
           <div className="relative">
             <ProjectVisual
               project={project}
+              priority
               className={`w-full object-cover object-top ${project.image ? "aspect-[16/10]" : "aspect-[16/10] sm:aspect-[16/7]"}`}
             />
             {demo.status === "online" && demo.embeddable ? (

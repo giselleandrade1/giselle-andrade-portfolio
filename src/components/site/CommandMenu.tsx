@@ -16,6 +16,8 @@ import {
 import { profile } from "@/data/profile";
 import { projects } from "@/data/projects";
 
+import { dictionaries } from "@/i18n/ui";
+
 import { navItems } from "./nav";
 
 const OPEN_EVENT = "open-command-menu";
@@ -67,10 +69,10 @@ export function CommandMenu() {
           {navItems.map((item) => (
             <CommandItem
               key={item.to}
-              value={`pagina ${item.label}`}
+              value={`pagina ${dictionaries["pt-BR"].nav[item.to]}`}
               onSelect={() => run(() => navigate({ to: item.to }))}
             >
-              <Navigation aria-hidden /> {item.label}
+              <Navigation aria-hidden /> {dictionaries["pt-BR"].nav[item.to]}
             </CommandItem>
           ))}
         </CommandGroup>
@@ -85,7 +87,13 @@ export function CommandMenu() {
               }
             >
               <FolderGit2 aria-hidden /> {p.name}
-              <CommandShortcut>{p.demo.status === "online" ? "demo" : "código"}</CommandShortcut>
+              <CommandShortcut>
+                {p.demo.status === "online"
+                  ? "demo"
+                  : p.demo.status === "unavailable"
+                    ? "demo fora do ar"
+                    : "código"}
+              </CommandShortcut>
             </CommandItem>
           ))}
         </CommandGroup>

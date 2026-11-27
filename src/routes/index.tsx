@@ -25,9 +25,21 @@ import { experiences } from "@/data/experience";
 import { profile } from "@/data/profile";
 import { projects } from "@/data/projects";
 
-const TITLE = "Giselle Andrade — Desenvolvedora Full Stack Júnior";
+const TITLE = "Giselle Andrade — Full Stack Developer | Backend Focus | Java & TypeScript";
 const DESCRIPTION =
-  "Desenvolvedora Full Stack Júnior em São Paulo: JavaScript, Node.js, Java e SQL. Projetos reais com demos online.";
+  "Giselle Andrade, Full Stack Developer com foco em backend: Java, TypeScript, Node.js e SQL. Estudante de Ciência da Computação e ADS em São Paulo, com projetos reais e demos online.";
+
+const personJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: profile.fullName,
+  alternateName: profile.name,
+  jobTitle: "Full Stack Developer",
+  url: profile.siteUrl,
+  address: { "@type": "PostalAddress", addressLocality: "São Paulo", addressRegion: "SP" },
+  knowsAbout: ["Java", "TypeScript", "JavaScript", "Node.js", "SQL", "Spring Boot", "React"],
+  sameAs: [profile.github, profile.linkedin],
+};
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -37,18 +49,21 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: TITLE },
       { property: "og:description", content: DESCRIPTION },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "/" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "/" }],
+    scripts: [{ type: "application/ld+json", children: JSON.stringify(personJsonLd) }],
   }),
   component: Index,
 });
 
 const marqueeStack = [
+  "Java",
+  "TypeScript",
   "JavaScript",
   "Node.js",
-  "Java",
   "SQL",
-  "TypeScript",
   "React",
   "Next.js",
   "Spring Boot",
@@ -88,7 +103,7 @@ function Index() {
       <section className="relative overflow-hidden">
         <div aria-hidden className="bg-aurora pointer-events-none absolute inset-0" />
         <div aria-hidden className="bg-grid pointer-events-none absolute inset-0" />
-        <div aria-hidden className="orb animate-drift left-[-6rem] top-24 size-72 bg-imperial/40" />
+        <div aria-hidden className="orb animate-drift left-[-6rem] top-24 size-72 bg-imperial/30" />
         <div
           aria-hidden
           className="orb animate-drift right-[-4rem] top-10 size-80 bg-primary/20"
@@ -96,44 +111,89 @@ function Index() {
         />
         <div
           aria-hidden
-          className="orb animate-drift bottom-0 left-1/3 size-64 bg-lavender/10"
+          className="orb animate-drift bottom-0 left-1/3 size-64 bg-vibrant/10"
           style={{ animationDelay: "-12s" }}
         />
         <div className="container-page relative grid items-center gap-14 pb-16 pt-12 sm:pt-20 lg:grid-cols-[1.2fr_1fr] lg:pb-24">
-          <div className="animate-reveal order-2 lg:order-1">
-            <Tag tone="success">
-              <span className="animate-pulse-dot size-1.5 rounded-full bg-success" aria-hidden />
-              {profile.availability}
-            </Tag>
-            <h1 className="mt-6 text-5xl font-bold leading-[1.02] sm:text-6xl lg:text-7xl">
+          <div className="order-2 min-w-0 lg:order-1">
+            <div className="animate-reveal">
+              <Tag tone="success">
+                <span className="animate-pulse-dot size-1.5 rounded-full bg-success" aria-hidden />
+                {profile.availability}
+              </Tag>
+            </div>
+            <p
+              className="animate-reveal mt-6 font-mono text-sm text-lavender"
+              style={{ animationDelay: "60ms" }}
+            >
+              {"// olá, eu sou"}
+            </p>
+            <h1
+              className="animate-reveal mt-2 text-[2.75rem] font-bold leading-[1.02] sm:text-6xl lg:text-7xl"
+              style={{ animationDelay: "120ms" }}
+            >
               <span className="text-gradient animate-shimmer">{profile.name}</span>
             </h1>
-            <p className="mt-5 font-display text-xl font-medium text-lilac sm:text-2xl">
-              {profile.role}
+            <p
+              className="animate-reveal mt-5 flex flex-wrap items-center gap-x-3 gap-y-1 font-display text-lg font-medium text-foreground sm:text-xl xl:text-2xl"
+              style={{ animationDelay: "180ms" }}
+            >
+              {profile.headline.map((part, i) => (
+                <span key={part} className="inline-flex items-center gap-3">
+                  {i > 0 ? (
+                    <span
+                      aria-hidden
+                      className="h-5 w-px bg-linear-to-b from-vibrant to-imperial"
+                    />
+                  ) : null}
+                  <span className={i === 0 ? "text-foreground" : "text-lilac"}>{part}</span>
+                </span>
+              ))}
             </p>
-            <p className="mt-3 font-mono text-sm text-muted-foreground sm:text-base">
+            <p
+              className="animate-reveal mt-4 flex items-start gap-2 text-sm text-muted-foreground sm:text-base"
+              style={{ animationDelay: "240ms" }}
+            >
+              <GraduationCap className="mt-0.5 size-4 shrink-0 text-lavender" aria-hidden />
+              <span>
+                {profile.academic} <span className="text-lavender">· em andamento</span>
+              </span>
+            </p>
+            <p
+              className="animate-reveal mt-3 font-mono text-sm text-muted-foreground sm:text-base"
+              style={{ animationDelay: "300ms" }}
+            >
               <span className="text-success">❯</span> construindo com{" "}
               <Typewriter
                 words={[
-                  "JavaScript",
-                  "Node.js",
                   "Java",
-                  "SQL",
                   "TypeScript",
-                  "React",
+                  "Node.js",
+                  "SQL",
                   "Spring Boot",
+                  "React",
+                  "JavaScript",
                 ]}
                 className="text-lavender"
               />
             </p>
-            <p className="mt-6 max-w-xl text-base text-muted-foreground sm:text-lg">
+            <p
+              className="animate-reveal mt-6 max-w-xl text-base text-muted-foreground sm:text-lg"
+              style={{ animationDelay: "360ms" }}
+            >
               {profile.intro}
             </p>
-            <p className="mt-5 inline-flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="size-4 text-lavender" aria-hidden /> {profile.location} ·{" "}
+            <p
+              className="animate-reveal mt-5 inline-flex items-center gap-2 text-sm text-muted-foreground"
+              style={{ animationDelay: "400ms" }}
+            >
+              <MapPin className="size-4 shrink-0 text-lavender" aria-hidden /> {profile.location} ·{" "}
               {profile.workModes}
             </p>
-            <div className="mt-8 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
+            <div
+              className="animate-reveal mt-8 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap"
+              style={{ animationDelay: "460ms" }}
+            >
               <Button
                 asChild
                 variant="hero"
@@ -148,6 +208,7 @@ function Index() {
               <Button asChild variant="glass" size="lg" data-magnetic>
                 <a href={profile.cvUrl} download={profile.cvFileName}>
                   <FileDown aria-hidden /> Currículo
+                  <span className="sr-only"> (PDF)</span>
                 </a>
               </Button>
               <Button asChild variant="glass" size="lg" data-magnetic>
@@ -156,12 +217,15 @@ function Index() {
                 </Link>
               </Button>
             </div>
-            <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+            <div
+              className="animate-reveal mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm"
+              style={{ animationDelay: "520ms" }}
+            >
               <a
                 href={profile.github}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-muted-foreground transition-colors hover:text-lilac"
+                className="inline-flex min-h-9 items-center gap-2 text-muted-foreground transition-colors hover:text-lilac"
               >
                 <Github className="size-4" aria-hidden /> github.com/{profile.githubHandle}
               </a>
@@ -169,7 +233,7 @@ function Index() {
                 href={profile.linkedin}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-muted-foreground transition-colors hover:text-lilac"
+                className="inline-flex min-h-9 items-center gap-2 text-muted-foreground transition-colors hover:text-lilac"
               >
                 <Linkedin className="size-4" aria-hidden /> in/{profile.linkedinHandle}
               </a>
@@ -356,7 +420,7 @@ function Index() {
               </Button>
               <Button asChild variant="glass" size="lg" data-magnetic>
                 <a href={profile.cvUrl} download={profile.cvFileName}>
-                  <FileDown aria-hidden /> Baixar currículo
+                  <FileDown aria-hidden /> Baixar currículo (PDF)
                 </a>
               </Button>
             </div>

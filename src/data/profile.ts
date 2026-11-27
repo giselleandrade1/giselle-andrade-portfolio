@@ -1,5 +1,5 @@
-import cvAsset from "@/assets/curriculo-giselle-andrade.pdf.asset.json";
-import photoAsset from "@/assets/giselle-andrade-perfil.jpg.asset.json";
+import photo from "@/assets/profile/giselle-andrade-github.webp";
+import photoSmall from "@/assets/profile/giselle-andrade-github-240.webp";
 
 /**
  * Single source of truth for personal/professional facts.
@@ -10,6 +10,10 @@ export const profile = {
   name: "Giselle Andrade",
   fullName: "Giselle Andrade Lourenço",
   role: "Desenvolvedora Full Stack Júnior",
+  /** Professional positioning shown in the hero (chosen by Giselle). */
+  headline: ["Full Stack Developer", "Backend Focus", "Java & TypeScript"],
+  /** Degrees in progress (see education.ts). */
+  academic: "Ciência da Computação · Análise e Desenvolvimento de Sistemas",
   headlineStack: ["JavaScript", "Node.js", "Java", "SQL"],
   location: "São Paulo, SP",
   workModes: "Remoto, híbrido ou presencial",
@@ -23,9 +27,17 @@ export const profile = {
   githubHandle: "giselleandrade1",
   linkedin: "https://www.linkedin.com/in/giselleandrades2/",
   linkedinHandle: "giselleandrades2",
-  cvUrl: cvAsset.url,
+  /** Résumé PDF stored in the repository (public/assets/docs). */
+  cvUrl: "/assets/docs/curriculo-giselle-andrade.pdf",
   cvFileName: "curriculo-giselle-andrade.pdf",
-  photoUrl: photoAsset.url,
+  /** Online résumé published by Giselle on GitHub Pages. */
+  cvWebUrl: "https://giselleandrade1.github.io/curriculum-web/",
+  /** Official GitHub profile photo, stored locally (src/assets/profile). */
+  photoUrl: photo,
+  photoSmallUrl: photoSmall,
+  photoAlt: "Foto de perfil de Giselle Andrade, desenvolvedora Full Stack",
+  /** Public address of the published portfolio (used for sitemap and structured data). */
+  siteUrl: "https://giselleandrade1-dev.vercel.app",
   lookingFor: [
     "Estágio em Tecnologia da Informação",
     "Desenvolvedora Full Stack Júnior",

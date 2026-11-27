@@ -1,11 +1,19 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowUpRight, Code2, Github } from "lucide-react";
+import { ArrowUpRight, ExternalLink, Github, Lock, TriangleAlert } from "lucide-react";
 
-import type { Project } from "@/data/projects";
+import { demoUrl, type Project } from "@/data/projects";
 
 import { Tag } from "./Tag";
 
-export function ProjectVisual({ project, className }: { project: Project; className?: string }) {
+export function ProjectVisual({
+  project,
+  className,
+  priority = false,
+}: {
+  project: Project;
+  className?: string;
+  priority?: boolean;
+}) {
   if (project.image) {
     return (
       <img
@@ -13,17 +21,17 @@ export function ProjectVisual({ project, className }: { project: Project; classN
         alt={`Tela real da aplicação ${project.name} em funcionamento`}
         width={1280}
         height={800}
-        loading="lazy"
+        loading={priority ? "eager" : "lazy"}
         decoding="async"
         className={className}
       />
     );
   }
-  // No public deployment: a code-window visual instead of a fake screenshot.
+  // No screenshot available: a code-window visual instead of a fake screenshot.
   return (
     <div
       role="img"
-      aria-label={`${project.name}: projeto sem demonstração publicada, veja o código-fonte`}
+      aria-label={`${project.name}: representação visual da stack do projeto`}
       className={`bg-surface-2 relative flex flex-col overflow-hidden font-mono ${className ?? ""}`}
     >
       <div aria-hidden className="bg-aurora absolute inset-0 opacity-80" />
@@ -33,9 +41,9 @@ export function ProjectVisual({ project, className }: { project: Project; classN
       >
         <span className="size-2.5 rounded-full bg-imperial" />
         <span className="size-2.5 rounded-full bg-primary" />
-        <span className="size-2.5 rounded-full bg-lavender" />
+        <span className="size-2.5 rounded-full bg-vibrant" />
         <span className="ml-3 truncate text-[0.7rem] text-muted-foreground">
-          {project.repo.split("/").pop()}/README.md
+          {project.slug}/stack.ts
         </span>
       </div>
       <div
@@ -58,71 +66,110 @@ export function ProjectVisual({ project, className }: { project: Project; classN
   );
 }
 
+export function DemoStatusTag({ project, className }: { project: Project; className?: string }) {
+  const { demo } = project;
+  if (demo.status === "online")
+    return (
+      <Tag tone="success" className={className}>
+        <span className="animate-pulse-dot size-1.5 rounded-full bg-success" aria-hidden /> Demo
+        online
+      </Tag>
+    );
+  if (demo.status === "unavailable")
+    return (
+      <Tag tone="warning" className={className}>
+        <TriangleAlert className="size-3" aria-hidden /> Demo indisponível
+      </Tag>
+    );
+  return (
+    <Tag tone="muted" className={className}>
+      Somente código
+    </Tag>
+  );
+}
+
+const MAX_TAGS = 4;
+
 export function ProjectCard({ project }: { project: Project }) {
+  const live = demoUrl(project.demo);
   return (
     <article
       data-reveal
-      className="glass card-interactive group relative flex h-full flex-col overflow-hidden rounded-2xl"
+      className="glass card-interactive group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl"
     >
       <div className="relative aspect-[16/10] overflow-hidden border-b border-border">
         <ProjectVisual
           project={project}
-          className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.03]"
+          className="h-full w-full object-cover object-top transition-transform duration-700 ease-[var(--ease-smooth)] group-hover:scale-[1.04]"
         />
-        <div className="absolute bottom-3 right-3 flex flex-wrap gap-1.5">
-          {project.demo.status === "online" ? (
-            <Tag tone="success" className="bg-background/85 backdrop-blur">
-              <span className="animate-pulse-dot size-1.5 rounded-full bg-success" aria-hidden />{" "}
-              Demo online
-            </Tag>
-          ) : (
-            <Tag tone="muted" className="bg-background/85 backdrop-blur">
-              Somente código
-            </Tag>
-          )}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-background/80 to-transparent"
+        />
+        <div className="absolute bottom-3 left-3">
+          <DemoStatusTag project={project} className="bg-background/85 backdrop-blur" />
         </div>
       </div>
       <div className="flex flex-1 flex-col p-5 sm:p-6">
         <p className="eyebrow">{project.categories.join(" · ")}</p>
-        <h3 className="mt-2 text-xl font-semibold">
+        <h3 className="mt-2 text-xl font-semibold leading-tight">
           <Link
             to="/projetos/$slug"
             params={{ slug: project.slug }}
-            className="after:absolute after:inset-0 after:content-[''] focus-visible:outline-none"
+            className="after:absolute after:inset-0 after:z-[2] after:content-[''] focus-visible:outline-none"
           >
             {project.name}
           </Link>
         </h3>
-        <p className="mt-2 text-sm text-muted-foreground">{project.tagline}</p>
+        <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{project.tagline}</p>
         <ul className="mt-4 flex flex-wrap gap-1.5" aria-label="Tecnologias">
-          {project.stack.slice(0, 5).map((s) => (
+          {project.stack.slice(0, MAX_TAGS).map((s) => (
             <li key={s}>
               <Tag>{s}</Tag>
             </li>
           ))}
-          {project.stack.length > 5 ? (
+          {project.stack.length > MAX_TAGS ? (
             <li>
-              <Tag tone="muted">+{project.stack.length - 5}</Tag>
+              <Tag tone="muted">+{project.stack.length - MAX_TAGS}</Tag>
             </li>
           ) : null}
         </ul>
-        <div className="relative z-10 mt-auto flex flex-wrap items-center gap-4 pt-6 text-sm">
-          <span className="inline-flex items-center gap-1 font-medium text-lilac">
-            Ver detalhes{" "}
+        <div className="relative z-[3] mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border pt-4 text-sm">
+          <span className="pointer-events-none inline-flex items-center gap-1 font-medium text-lilac">
+            Detalhes
             <ArrowUpRight
               className="size-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
               aria-hidden
             />
           </span>
-          <a
-            href={project.repo}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ml-auto inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
-          >
-            <Github className="size-4" aria-hidden /> Código
-            <span className="sr-only"> de {project.name} (abre em nova aba)</span>
-          </a>
+          <div className="-mr-3 ml-auto flex flex-wrap items-center justify-end gap-1">
+            {live ? (
+              <a
+                href={live}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
+              >
+                <ExternalLink className="size-4" aria-hidden /> Demo
+                <span className="sr-only"> de {project.name} (abre em nova aba)</span>
+              </a>
+            ) : null}
+            {project.repo ? (
+              <a
+                href={project.repo}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
+              >
+                <Github className="size-4" aria-hidden /> Código
+                <span className="sr-only"> de {project.name} (abre em nova aba)</span>
+              </a>
+            ) : (
+              <span className="inline-flex min-h-9 items-center gap-1.5 px-3 text-xs text-muted-foreground">
+                <Lock className="size-3.5" aria-hidden /> Código privado
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </article>

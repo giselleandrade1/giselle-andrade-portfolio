@@ -19,8 +19,10 @@ export const Route = createFileRoute("/formacao")({
         content: "Formação acadêmica, cursos e certificações de Giselle Andrade.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "/formacao" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "/formacao" }],
   }),
   component: EducationPage,
 });

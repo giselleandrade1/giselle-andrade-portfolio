@@ -104,7 +104,11 @@ export function Terminal() {
                 <span
                   className={p.demo.status === "online" ? "text-success" : "text-muted-foreground"}
                 >
-                  {p.demo.status === "online" ? "● demo" : "○ código"}
+                  {p.demo.status === "online"
+                    ? "● demo"
+                    : p.demo.status === "unavailable"
+                      ? "◌ demo fora do ar"
+                      : "○ código"}
                 </span>{" "}
                 <span className="text-foreground">{p.name}</span>{" "}
                 <span className="text-muted-foreground">— {p.stack.slice(0, 3).join(", ")}</span>

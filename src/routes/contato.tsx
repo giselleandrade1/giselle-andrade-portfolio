@@ -20,8 +20,10 @@ export const Route = createFileRoute("/contato")({
         content: "Fale com Giselle Andrade sobre vagas de estágio, júnior ou projetos.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "/contato" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "/contato" }],
   }),
   component: ContactPage,
 });

@@ -1,9 +1,10 @@
-import bunnyShot from "@/assets/projects/bunny.jpg";
-import controlShot from "@/assets/projects/control.jpg";
-import gistenShot from "@/assets/projects/gisten.jpg";
-import kinvoShot from "@/assets/projects/kinvo.jpg";
-import lembrafacilShot from "@/assets/projects/lembrafacil.jpg";
-import venuxShot from "@/assets/projects/venux.jpg";
+import bunnyShot from "@/assets/projects/bunny.webp";
+import controlShot from "@/assets/projects/control.webp";
+import easyScheduleShot from "@/assets/projects/easy-schedule.webp";
+import gistenShot from "@/assets/projects/gisten.webp";
+import kinvoShot from "@/assets/projects/kinvo.webp";
+import lembrafacilShot from "@/assets/projects/lembrafacil.webp";
+import venuxShot from "@/assets/projects/venux.webp";
 
 export type ProjectCategory = "Full Stack" | "Frontend" | "Backend" | "Sistemas";
 
@@ -17,13 +18,21 @@ export const projectCategories: ProjectCategory[] = [
 export type Demo =
   /** Public URL checked with a real browser: renders the app. */
   | { status: "online"; url: string; embeddable: boolean; verifiedAt: string; note?: string }
+  /** Official demo URL that did not respond when last checked: keep the link, warn the visitor. */
+  | { status: "unavailable"; url: string; checkedAt: string; reason: string }
   /** No working public deployment: never show a Live Demo button. */
   | { status: "offline"; reason: string };
 
+/** Demo URL to link to, when the project has an official deployment. */
+export const demoUrl = (demo: Demo): string | null => (demo.status === "offline" ? null : demo.url);
+
 export type Project = {
   slug: string;
+  /** Previous slugs that must keep working (redirected to the current slug). */
+  aliases?: string[];
   name: string;
-  repo: string;
+  /** Public GitHub repository, or null when the source code is private. */
+  repo: string | null;
   tagline: string;
   description: string;
   problem: string;
@@ -80,9 +89,10 @@ export const projects: Project[] = [
     featured: true,
   },
   {
-    slug: "easy-schedule",
+    slug: "easy-schedule-java",
+    aliases: ["easy-schedule"],
     name: "EasySchedule",
-    repo: repoUrl("easy-schedule-java"),
+    repo: null,
     tagline: "Sistema de agendamentos em Java com Spring Boot.",
     description:
       "Aplicação web em Java para gestão de clientes, profissionais, serviços, disponibilidade e agendamentos, com área administrativa e área do cliente.",
@@ -107,12 +117,15 @@ export const projects: Project[] = [
       "Acesso separado para administrador e cliente, senhas com BCrypt e proteção CSRF",
       "Testes de serviço com JUnit",
     ],
-    notes: [],
+    notes: ["O código-fonte está em um repositório privado no GitHub."],
     demo: {
-      status: "offline",
-      reason:
-        "O endereço publicado na Vercel não possui uma implantação ativa. Por ser uma aplicação Java com banco de dados, precisa de hospedagem com suporte a Java (ex.: Render ou Railway).",
+      status: "online",
+      url: "https://easy-schedule-java.fly.dev/login",
+      // The app sends X-Frame-Options: DENY, so it cannot be previewed inside the portfolio.
+      embeddable: false,
+      verifiedAt: "2026-11-22",
     },
+    image: easyScheduleShot,
     featured: true,
   },
   {
@@ -280,9 +293,10 @@ export const projects: Project[] = [
     featured: false,
   },
   {
-    slug: "noctora-vault",
+    slug: "noctora-vault-challenge",
+    aliases: ["noctora-vault"],
     name: "Noctora Vault",
-    repo: repoUrl("noctora-vault_challenge"),
+    repo: repoUrl("noctora-vault-challenge"),
     tagline: "Catálogo de filmes com API de recomendações em Express.",
     description:
       "Biblioteca de filmes com busca, categorias, franquias, sagas, navegação alfabética, destaques e recomendações por similaridade, servida por uma API Node.js.",
@@ -296,12 +310,40 @@ export const projects: Project[] = [
     ],
     notes: ["O catálogo é armazenado em arquivo JSON local, sem banco de dados."],
     demo: {
-      status: "offline",
+      status: "unavailable",
+      url: "https://noctora-vault-challenge.vercel.app",
+      checkedAt: "2026-11-22",
       reason:
-        "Ainda não há implantação pública. Pode ser publicado em uma hospedagem Node.js (ex.: Render ou Railway).",
+        "Na última verificação (22/11/2026) o endereço oficial da demo respondeu “404 — NOT_FOUND” na Vercel. O link foi mantido e volta a funcionar assim que a implantação for reativada.",
     },
     featured: false,
   },
 ];
 
 export const getProject = (slug: string) => projects.find((p) => p.slug === slug);
+
+/** Finds a project by its current slug or by one of its previous slugs. */
+export const findProject = (slug: string) =>
+  projects.find((p) => p.slug === slug || p.aliases?.includes(slug));
+
+/** Every technology used across projects, most frequent first (for filters). */
+export const projectTechnologies = (() => {
+  const counts = new Map<string, number>();
+  for (const p of projects)
+    for (const t of p.stack) {
+      const key = techKey(t);
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+  return [...counts.entries()]
+    .filter(([, n]) => n > 1)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([t]) => t);
+})();
+
+/** Normalises "React 19" / "Next.js 16" to their family name so filters group versions. */
+export function techKey(tech: string): string {
+  return tech
+    .replace(/\s+\d+(\.\d+)*$/, "")
+    .replace(/\s*\(.*\)$/, "")
+    .trim();
+}

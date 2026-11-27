@@ -1,16 +1,24 @@
 import { Link } from "@tanstack/react-router";
 import { Github, Linkedin, Mail } from "lucide-react";
 
+import logo from "@/assets/branding/logo-ga.webp";
 import { profile } from "@/data/profile";
+
+import { useT } from "@/i18n/LocaleProvider";
 
 import { navItems } from "./nav";
 
 export function SiteFooter() {
+  const t = useT();
   return (
     <footer className="mt-24 border-t border-border/60">
       <div className="container-page grid gap-10 py-12 md:grid-cols-[1.4fr_1fr_1fr]">
         <div>
-          <p className="font-display text-lg font-semibold">{profile.name}</p>
+          <div className="flex items-center gap-3">
+            <img src={logo} alt="" width={40} height={40} loading="lazy" className="size-10" />
+            <p className="font-display text-lg font-semibold">{profile.name}</p>
+          </div>
+          <p className="mt-2 font-mono text-xs text-lavender">{profile.headline.join(" · ")}</p>
           <p className="mt-2 max-w-sm text-sm text-muted-foreground">
             {profile.role} · {profile.location}. {profile.availability}.
           </p>
@@ -22,9 +30,9 @@ export function SiteFooter() {
               <li key={item.to}>
                 <Link
                   to={item.to}
-                  className="text-muted-foreground transition-colors hover:text-lilac"
+                  className="inline-flex min-h-8 items-center text-muted-foreground transition-colors hover:text-lilac"
                 >
-                  {item.label}
+                  {t.nav[item.to]}
                 </Link>
               </li>
             ))}

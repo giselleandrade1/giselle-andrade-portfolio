@@ -21,8 +21,10 @@ export const Route = createFileRoute("/experiencia")({
           "Experiência profissional de Giselle Andrade em desenvolvimento web, freelancer e processos administrativos.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "/experiencia" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "/experiencia" }],
   }),
   component: ExperiencePage,
 });

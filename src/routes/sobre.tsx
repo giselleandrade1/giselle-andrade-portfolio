@@ -24,7 +24,7 @@ import {
 
 const TITLE = "Sobre — Giselle Andrade";
 const DESCRIPTION =
-  "Trajetória, competências técnicas e idiomas de Giselle Andrade, desenvolvedora Full Stack Júnior em São Paulo.";
+  "Trajetória, competências técnicas e idiomas de Giselle Andrade, Full Stack Developer com foco em backend, Java e TypeScript, em São Paulo.";
 
 export const Route = createFileRoute("/sobre")({
   head: () => ({
@@ -34,8 +34,10 @@ export const Route = createFileRoute("/sobre")({
       { property: "og:title", content: TITLE },
       { property: "og:description", content: DESCRIPTION },
       { property: "og:type", content: "profile" },
+      { property: "og:url", content: "/sobre" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "/sobre" }],
   }),
   component: About,
 });
@@ -59,15 +61,19 @@ function About() {
       <section className="container-page grid gap-10 lg:grid-cols-[20rem_1fr]">
         <aside data-reveal className="glass h-fit rounded-3xl p-6 lg:sticky lg:top-24">
           <img
-            src={profile.photoUrl}
-            alt="Foto de Giselle Andrade"
-            width={460}
-            height={460}
+            src={profile.photoSmallUrl}
+            alt={profile.photoAlt}
+            width={240}
+            height={240}
             loading="lazy"
+            decoding="async"
             className="mx-auto size-40 rounded-full border border-border object-cover shadow-glow"
           />
           <p className="mt-5 text-center font-display text-xl font-semibold">{profile.fullName}</p>
           <p className="text-center text-sm text-muted-foreground">{profile.role}</p>
+          <p className="mt-1 text-center font-mono text-xs text-lavender">
+            {profile.headline.join(" · ")}
+          </p>
           <p className="mt-6 flex items-start gap-2 border-t border-border pt-5 text-sm">
             <MapPin className="mt-0.5 size-4 shrink-0 text-lavender" aria-hidden />
             <span>
@@ -106,8 +112,11 @@ function About() {
             problema de negócio antes de escrever a primeira linha de código.
           </p>
           <p data-reveal>
-            Meu foco agora é crescer como desenvolvedora Full Stack, aprofundando backend com Java,
-            Node.js e SQL e arquitetura de sistemas.
+            Meu foco agora é crescer como desenvolvedora Full Stack com ênfase em{" "}
+            <strong className="font-medium text-foreground">backend</strong>: Java e Spring Boot,
+            JavaScript e TypeScript com Node.js, APIs REST e integração de sistemas, bancos de dados
+            SQL e arquitetura de software. Também me interesso por dados e por soluções inteligentes
+            que ajudem pessoas a decidir melhor.
           </p>
           <div data-reveal className="glass rounded-2xl p-6">
             <p className="eyebrow">Oportunidades que busco</p>
