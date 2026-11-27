@@ -1,24 +1,82 @@
+import { existsSync, readFileSync, statSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import { courses, education } from "@/data/education";
-import { languages } from "@/data/profile";
-import { projects } from "@/data/projects";
+import { languages, profile } from "@/data/profile";
+import { demoUrl, findProject, projects } from "@/data/projects";
 import { buildMailtoUrl, buildWhatsAppUrl, contactSchema, isLikelySpam } from "@/lib/contact";
+import { filterProjects } from "@/lib/project-filters";
 
-describe("portfolio content rules", () => {
-  it("shows a Live Demo only for projects verified online", () => {
-    const easy = projects.find((p) => p.slug === "easy-schedule");
-    const noctora = projects.find((p) => p.slug === "noctora-vault");
-    expect(easy?.demo.status).toBe("offline");
-    expect(noctora?.demo.status).toBe("offline");
-    expect(projects.find((p) => p.slug === "control-consultoria")?.demo.status).toBe("online");
+const root = resolve(__dirname, "../..");
+
+describe("project demo links", () => {
+  it("points Easy Schedule Java to the official fly.dev demo", () => {
+    const easy = projects.find((p) => p.slug === "easy-schedule-java");
+    expect(easy && demoUrl(easy.demo)).toBe("https://easy-schedule-java.fly.dev/login");
+  });
+
+  it("points Noctora Vault Challenge to the official vercel demo", () => {
+    const noctora = projects.find((p) => p.slug === "noctora-vault-challenge");
+    expect(noctora && demoUrl(noctora.demo)).toBe("https://noctora-vault-challenge.vercel.app");
+  });
+
+  it("keeps the demo link separate from the source repository", () => {
+    const noctora = projects.find((p) => p.slug === "noctora-vault-challenge");
+    expect(noctora?.repo).toBe("https://github.com/giselleandrade1/noctora-vault-challenge");
+    expect(projects.find((p) => p.slug === "easy-schedule-java")?.repo).toBeNull();
+  });
+
+  it("still opens projects through their previous addresses", () => {
+    expect(findProject("easy-schedule")?.slug).toBe("easy-schedule-java");
+    expect(findProject("noctora-vault")?.slug).toBe("noctora-vault-challenge");
+  });
+
+  it("keeps all eight projects", () => {
+    expect(projects).toHaveLength(8);
   });
 
   it("does not embed LembraFácil, whose site forbids framing", () => {
     const lembra = projects.find((p) => p.slug === "lembrafacil");
     expect(lembra?.demo.status === "online" && lembra.demo.embeddable).toBe(false);
   });
+});
 
+describe("project filters", () => {
+  it("finds Java projects regardless of version suffix", () => {
+    const names = filterProjects(projects, { category: "Todos", tech: "Java", query: "" }).map(
+      (p) => p.slug,
+    );
+    expect(names).toEqual(["easy-schedule-java", "lembrafacil"]);
+  });
+
+  it("searches ignoring accents and case", () => {
+    const found = filterProjects(projects, { category: "Todos", tech: null, query: "lembrafacil" });
+    expect(found.map((p) => p.slug)).toEqual(["lembrafacil"]);
+  });
+});
+
+describe("local assets and removed files", () => {
+  it("serves the résumé PDF from the repository", () => {
+    const pdf = resolve(root, "public", profile.cvUrl.replace(/^\//, ""));
+    expect(readFileSync(pdf).subarray(0, 4).toString()).toBe("%PDF");
+  });
+
+  it("stores the GitHub profile photo inside the project", () => {
+    const photo = resolve(root, "src/assets/profile/giselle-andrade-github.webp");
+    expect(statSync(photo).size).toBeGreaterThan(10_000);
+    expect(profile.photoUrl.startsWith("http")).toBe(false);
+  });
+
+  it("has no README.md or AGENTS.md / agentes.md at the project root", () => {
+    for (const name of ["README.md", "readme.md", "AGENTS.md", "agents.md", "agentes.md"]) {
+      expect(existsSync(resolve(root, name))).toBe(false);
+    }
+  });
+});
+
+describe("portfolio content rules", () => {
   it("keeps the Google data analytics course in progress", () => {
     expect(courses.find((c) => c.id === "google-data")?.status).toBe("Em andamento");
   });
